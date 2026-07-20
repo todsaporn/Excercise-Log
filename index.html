@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0f172a" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Exercise Log" />
+<meta name="description" content="ตัวติดตามการออกกำลังกายรายวัน บันทึกทีละเซ็ตจนครบเป้าหมาย" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
 <title>Exercise Log — ตัวติดตามออกกำลังกาย</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -294,6 +300,61 @@
   .hist-badge.partial{background:rgba(251,191,36,.16);color:var(--gold)}
   .hist-badge.none{background:rgba(148,163,184,.12);color:var(--txt-faint)}
 
+  /* ===== Stats ===== */
+  .streak-card{
+    display:flex;align-items:center;gap:16px;
+    background:linear-gradient(135deg,#3b2a12,#4a2f14 60%,#1f1a2e);
+    border:1px solid rgba(251,191,36,.3);border-radius:var(--radius);
+    padding:18px;margin-bottom:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .streak-card::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.25),transparent 70%)}
+  .streak-flame{font-size:46px;line-height:1;flex:none;filter:drop-shadow(0 4px 10px rgba(251,191,36,.4))}
+  .streak-info{position:relative;z-index:1}
+  .streak-num{font-size:32px;font-weight:800;line-height:1;color:var(--gold)}
+  .streak-num .streak-unit{font-size:16px;color:var(--txt);font-weight:700}
+  .streak-sub{font-size:12px;color:var(--txt-dim);margin-top:6px}
+  .streak-sub b{color:var(--txt)}
+
+  .seg{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:3px}
+  .seg-btn{
+    border:none;background:none;color:var(--txt-dim);font-family:inherit;font-weight:600;
+    font-size:11.5px;padding:6px 11px;border-radius:8px;cursor:pointer;transition:.15s;
+  }
+  .seg-btn.active{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
+  .stat-tile{
+    background:var(--card);border:1px solid var(--line);border-radius:15px;
+    padding:14px 8px;text-align:center;
+  }
+  .stat-tile .sv{font-size:21px;font-weight:800;color:var(--txt);line-height:1}
+  .stat-tile .sl{font-size:10.5px;color:var(--txt-dim);margin-top:5px}
+
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 14px;margin-bottom:6px}
+  .chart{display:flex;align-items:flex-end;gap:5px;height:130px;overflow-x:auto;padding-bottom:4px}
+  .cbar-wrap{flex:1;min-width:14px;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+  .cbar{width:100%;max-width:24px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--brand),var(--brand-2));min-height:3px;transition:height .4s cubic-bezier(.4,0,.2,1);position:relative}
+  .cbar.full{background:linear-gradient(180deg,var(--good),#10b981)}
+  .cbar.zero{background:rgba(255,255,255,.06)}
+  .cbar-lbl{font-size:8.5px;color:var(--txt-faint);white-space:nowrap;transform-origin:center}
+  .cbar-val{font-size:8px;color:var(--txt-dim);font-weight:700}
+
+  .heat-wrap{overflow-x:auto;padding-bottom:6px}
+  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px;min-width:min-content}
+  .hcell{width:15px;height:15px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.03)}
+  .hcell.l1{background:rgba(99,102,241,.35)}
+  .hcell.l2{background:rgba(99,102,241,.6)}
+  .hcell.l3{background:rgba(139,92,246,.8)}
+  .hcell.l4{background:linear-gradient(135deg,var(--good),#10b981)}
+  .hcell.future{opacity:0}
+  .heat-legend{display:flex;align-items:center;gap:5px;justify-content:flex-end;margin-top:12px;font-size:10.5px;color:var(--txt-faint)}
+  .hl{width:13px;height:13px;border-radius:4px}
+  .hl.l0{background:rgba(255,255,255,.05)}
+  .hl.l1{background:rgba(99,102,241,.35)}
+  .hl.l2{background:rgba(99,102,241,.6)}
+  .hl.l3{background:rgba(139,92,246,.8)}
+  .hl.l4{background:linear-gradient(135deg,var(--good),#10b981)}
+
   /* ===== Modal ===== */
   .modal-bg{
     position:fixed;inset:0;z-index:60;background:rgba(2,6,20,.72);
@@ -452,6 +513,50 @@
     <div id="exerciseList"></div>
   </section>
 
+  <!-- ======== STATS VIEW ======== -->
+  <section class="view" id="view-stats">
+    <div class="streak-card" id="streakCard">
+      <div class="streak-flame">🔥</div>
+      <div class="streak-info">
+        <div class="streak-num"><span id="streakCur">0</span> <span class="streak-unit">วันติด</span></div>
+        <div class="streak-sub">สถิติสูงสุด <b id="streakBest">0</b> วัน · ออกกำลังไปแล้ว <b id="streakTotalDays">0</b> วัน</div>
+      </div>
+    </div>
+
+    <div class="sec-title"><h2>ช่วงเวลา</h2>
+      <div class="seg" id="rangeSeg">
+        <button class="seg-btn active" data-range="7">7 วัน</button>
+        <button class="seg-btn" data-range="30">30 วัน</button>
+        <button class="seg-btn" data-range="90">90 วัน</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="sv" id="stTotal">0</div><div class="sl">ครั้งรวม</div></div>
+      <div class="stat-tile"><div class="sv" id="stSets">0</div><div class="sl">เซ็ตรวม</div></div>
+      <div class="stat-tile"><div class="sv" id="stActive">0</div><div class="sl">วันที่ขยับ</div></div>
+      <div class="stat-tile"><div class="sv" id="stAvg">0</div><div class="sl">เฉลี่ย/วัน</div></div>
+      <div class="stat-tile"><div class="sv" id="stFull">0</div><div class="sl">วันครบเป้า</div></div>
+      <div class="stat-tile"><div class="sv" id="stRate">0%</div><div class="sl">อัตราสำเร็จ</div></div>
+    </div>
+
+    <div class="sec-title"><h2>แนวโน้มรายวัน</h2></div>
+    <div class="chart-card">
+      <div class="chart" id="trendChart"></div>
+    </div>
+
+    <div class="sec-title"><h2>ปฏิทินความสม่ำเสมอ</h2></div>
+    <div class="chart-card">
+      <div class="heat-wrap"><div class="heat" id="heatmap"></div></div>
+      <div class="heat-legend">
+        <span>น้อย</span>
+        <div class="hl l0"></div><div class="hl l1"></div><div class="hl l2"></div><div class="hl l3"></div><div class="hl l4"></div>
+        <span>มาก</span>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+  </section>
+
   <!-- ======== HISTORY VIEW ======== -->
   <section class="view" id="view-history">
     <div class="sec-title"><h2>ประวัติย้อนหลัง</h2></div>
@@ -498,6 +603,7 @@
   <nav class="tabbar">
     <div class="tabbar-inner">
       <button class="tab active" data-tab="today"><span class="ti">🏠</span>วันนี้</button>
+      <button class="tab" data-tab="stats"><span class="ti">📊</span>สถิติ</button>
       <button class="tab" data-tab="history"><span class="ti">📅</span>ประวัติ</button>
       <button class="tab" data-tab="profile"><span class="ti">🧩</span>โปรไฟล์</button>
     </div>
@@ -517,9 +623,18 @@
       <label>เป้าหมาย (ครั้ง)</label>
       <div class="stepper">
         <button type="button" id="tgtMinus">−</button>
-        <input type="number" id="inpExTarget" value="100" min="10" step="10" inputmode="numeric"/>
+        <input type="number" id="inpExTarget" value="100" min="1" step="10" inputmode="numeric"/>
         <button type="button" id="tgtPlus">＋</button>
       </div>
+    </div>
+    <div class="field">
+      <label>ขนาดเซ็ต (กี่ครั้งต่อ 1 เซ็ต)</label>
+      <div class="stepper">
+        <button type="button" id="setMinus">−</button>
+        <input type="number" id="inpExSet" value="10" min="1" step="1" inputmode="numeric"/>
+        <button type="button" id="setPlus">＋</button>
+      </div>
+      <div class="hint" id="setsHint" style="font-size:11px;color:var(--txt-faint);margin-top:7px">= 10 เซ็ต ต่อการทำครบเป้าหมาย</div>
     </div>
     <div class="field">
       <label>รูปอ้างอิง (ไม่บังคับ)</label>
@@ -578,10 +693,11 @@
    ============================================================ */
 
 const STORE_KEY = "exlog.v1";
-const SET_SIZE = 10;
+const SET_SIZE = 10;               // default set size for new exercises
 const RING_CIRC = 2 * Math.PI * 42;
 
 const uid = () => 'e' + Math.random().toString(36).slice(2, 9);
+const setSizeOf = e => (e && e.setSize > 0) ? e.setSize : SET_SIZE;
 
 /* ---- date helpers (local, not UTC) ---- */
 function ymd(d){
@@ -611,18 +727,26 @@ let confirmCb = null;
 function load(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
-    if(raw){ const p=JSON.parse(raw); if(p && p.profile && p.days) return p; }
+    if(raw){ const p=JSON.parse(raw); if(p && p.profile && p.days) return migrate(p); }
   }catch(e){}
   return seed();
+}
+/* fill in fields added in later versions so old backups keep working */
+function migrate(p){
+  (p.profile.exercises||[]).forEach(e=>{ if(!(e.setSize>0)) e.setSize=SET_SIZE; });
+  Object.values(p.days||{}).forEach(day=>{
+    (day.exercises||[]).forEach(e=>{ if(!(e.setSize>0)) e.setSize=SET_SIZE; });
+  });
+  return p;
 }
 function seed(){
   return {
     profile:{
       name:"โปรแกรมของฉัน",
       exercises:[
-        {id:uid(),name:"วิดพื้น (Push-up)",target:100,image:null},
-        {id:uid(),name:"สควอท (Squat)",target:100,image:null},
-        {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,image:null},
+        {id:uid(),name:"วิดพื้น (Push-up)",target:100,setSize:10,image:null},
+        {id:uid(),name:"สควอท (Squat)",target:100,setSize:10,image:null},
+        {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,setSize:10,image:null},
       ]
     },
     days:{}
@@ -641,7 +765,7 @@ function ensureDay(date){
   if(!state.days[date]){
     state.days[date] = {
       exercises: state.profile.exercises.map(e=>({
-        id:e.id, name:e.name, target:e.target, image:e.image||null, reps:0
+        id:e.id, name:e.name, target:e.target, setSize:setSizeOf(e), image:e.image||null, reps:0
       }))
     };
   }
@@ -651,7 +775,7 @@ function ensureDay(date){
 function viewDay(date){
   if(state.days[date]) return state.days[date];
   return { exercises: state.profile.exercises.map(e=>({
-    id:e.id, name:e.name, target:e.target, image:e.image||null, reps:0
+    id:e.id, name:e.name, target:e.target, setSize:setSizeOf(e), image:e.image||null, reps:0
   })) };
 }
 
@@ -659,6 +783,7 @@ function viewDay(date){
 function render(){
   document.getElementById('profileNameLabel').textContent = state.profile.name || "ตัวติดตามออกกำลังกาย";
   renderToday();
+  renderStats();
   renderHistory();
   renderProfile();
 }
@@ -674,10 +799,10 @@ function renderToday(){
   document.getElementById('dateNext').style.visibility = (currentDate>=TODAY)?'hidden':'visible';
 
   // summary
-  let totalReps=0, totalTgt=0, doneCount=0;
+  let totalReps=0, totalTgt=0, doneCount=0, totalSets=0;
   day.exercises.forEach(e=>{
-    const r=Math.min(e.reps,e.target);
     totalReps+=e.reps; totalTgt+=e.target;
+    totalSets+=Math.floor(e.reps/setSizeOf(e));
     if(e.reps>=e.target) doneCount++;
   });
   const pct = totalTgt>0 ? Math.min(100, Math.round(totalReps/totalTgt*100)) : 0;
@@ -685,7 +810,7 @@ function renderToday(){
   document.getElementById('totalReps').textContent = totalReps;
   document.getElementById('totalTarget').textContent = totalTgt;
   document.getElementById('statDone').textContent = doneCount;
-  document.getElementById('statSets').textContent = Math.floor(totalReps/SET_SIZE);
+  document.getElementById('statSets').textContent = totalSets;
   document.getElementById('statLeft').textContent = Math.max(0, totalTgt-totalReps);
   const ring=document.getElementById('ringProg');
   ring.style.strokeDashoffset = RING_CIRC*(1 - pct/100);
@@ -701,14 +826,14 @@ function renderToday(){
   }
 
   list.innerHTML = day.exercises.map((e,idx)=>{
-    const reps=e.reps, tgt=e.target;
+    const reps=e.reps, tgt=e.target, ss=setSizeOf(e);
     const done=reps>=tgt;
     const pctE=tgt>0?Math.min(100,Math.round(reps/tgt*100)):0;
-    const totalDots=Math.ceil(tgt/SET_SIZE);
-    const filledDots=Math.floor(reps/SET_SIZE);
+    const totalDots=Math.max(1,Math.ceil(tgt/ss));
+    const filledDots=Math.floor(reps/ss);
     let dots='';
     for(let i=0;i<totalDots;i++){
-      dots+=`<div class="dot ${i<filledDots?'filled':''}" data-act="setdot" data-id="${e.id}" data-n="${i+1}">${(i+1)*SET_SIZE>tgt?tgt-(i*SET_SIZE):SET_SIZE}</div>`;
+      dots+=`<div class="dot ${i<filledDots?'filled':''}" data-act="setdot" data-id="${e.id}" data-n="${i+1}">${(i+1)*ss>tgt?tgt-(i*ss):ss}</div>`;
     }
     const thumb = e.image
       ? `<div class="thumb" data-act="view" data-id="${e.id}"><img src="${e.image}" alt=""/><div class="zoom">⛶</div></div>`
@@ -724,8 +849,8 @@ function renderToday(){
       <div class="pbar"><div class="pfill" style="width:${pctE}%"></div></div>
       <div class="dots">${dots}</div>
       <div class="ex-actions">
-        <button class="btn btn-sub" data-act="minus" data-id="${e.id}" ${reps<=0?'disabled':''}>−10</button>
-        <button class="btn btn-add" data-act="plus" data-id="${e.id}" ${done?'disabled':''}>${done?'✓ ครบแล้ว':'＋ เพิ่ม 1 เซ็ต (10)'}</button>
+        <button class="btn btn-sub" data-act="minus" data-id="${e.id}" ${reps<=0?'disabled':''}>−${ss}</button>
+        <button class="btn btn-add" data-act="plus" data-id="${e.id}" ${done?'disabled':''}>${done?'✓ ครบแล้ว':'＋ เพิ่ม 1 เซ็ต ('+ss+')'}</button>
       </div>
     </div>`;
   }).join('');
@@ -780,7 +905,7 @@ function renderProfile(){
       ${thumb}
       <div class="mi-info">
         <div class="mi-name">${escapeHtml(e.name)}</div>
-        <div class="mi-sub">เป้าหมาย ${e.target} ครั้ง · ${Math.ceil(e.target/SET_SIZE)} เซ็ต ${e.image?'· มีรูป 🖼️':''}</div>
+        <div class="mi-sub">เป้าหมาย ${e.target} ครั้ง · ${Math.max(1,Math.ceil(e.target/setSizeOf(e)))} เซ็ต × ${setSizeOf(e)} ${e.image?'· 🖼️':''}</div>
       </div>
       <div class="mi-act">
         <button class="mini-btn" data-act="editp" data-id="${e.id}">✏️</button>
@@ -790,21 +915,103 @@ function renderProfile(){
   }).join('');
 }
 
+/* =================== STATS =================== */
+let statsRange = 7;
+function addDays(s,delta){const d=parseYmd(s);d.setDate(d.getDate()+delta);return ymd(d);}
+function dayDiff(a,b){return Math.round((parseYmd(b)-parseYmd(a))/86400000);}
+const TH_DOW1=['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+function dayTotals(day){
+  let reps=0,tgt=0,done=0,sets=0;
+  day.exercises.forEach(e=>{reps+=e.reps;tgt+=e.target;sets+=Math.floor(e.reps/setSizeOf(e));if(e.reps>=e.target)done++;});
+  const pct=tgt>0?Math.min(100,Math.round(reps/tgt*100)):0;
+  const full=day.exercises.length>0 && done===day.exercises.length;
+  return {reps,tgt,done,sets,pct,full};
+}
+function heatLevel(pct){ if(pct<=0)return 0; if(pct<34)return 1; if(pct<67)return 2; if(pct<100)return 3; return 4; }
+
+function renderStats(){
+  // ---- streaks (a day counts if any reps logged) ----
+  const active={};
+  Object.keys(state.days).forEach(d=>{ if(dayTotals(state.days[d]).reps>0) active[d]=true; });
+  const dates=Object.keys(active).sort();
+  document.getElementById('streakTotalDays').textContent=dates.length;
+  let best=0,run=0,prev=null;
+  dates.forEach(d=>{ run=(prev && dayDiff(prev,d)===1)?run+1:1; best=Math.max(best,run); prev=d; });
+  document.getElementById('streakBest').textContent=best;
+  let cur=0,cursor=active[TODAY]?TODAY:addDays(TODAY,-1);
+  while(active[cursor]){ cur++; cursor=addDays(cursor,-1); }
+  document.getElementById('streakCur').textContent=cur;
+
+  // ---- range aggregates (last N days incl. today) ----
+  const N=statsRange;
+  let sumReps=0,sumSets=0,actDays=0,fullDays=0;
+  const trend=[];
+  for(let i=N-1;i>=0;i--){
+    const d=addDays(TODAY,-i);
+    const day=state.days[d];
+    const t=day?dayTotals(day):{reps:0,sets:0,pct:0,full:false};
+    sumReps+=t.reps; sumSets+=t.sets;
+    if(t.reps>0) actDays++;
+    if(t.full) fullDays++;
+    trend.push({date:d,reps:t.reps,pct:t.pct,full:t.full});
+  }
+  document.getElementById('stTotal').textContent=sumReps.toLocaleString();
+  document.getElementById('stSets').textContent=sumSets;
+  document.getElementById('stActive').textContent=actDays;
+  document.getElementById('stAvg').textContent=Math.round(sumReps/N).toLocaleString();
+  document.getElementById('stFull').textContent=fullDays;
+  document.getElementById('stRate').textContent=Math.round(actDays/N*100)+'%';
+
+  // ---- trend chart ----
+  const maxR=Math.max(1,...trend.map(x=>x.reps));
+  const step=Math.max(1,Math.ceil(N/12));
+  document.getElementById('trendChart').innerHTML=trend.map((x,i)=>{
+    const h=Math.round(x.reps/maxR*100);
+    const cls=x.reps<=0?'zero':(x.full?'full':'');
+    const d=parseYmd(x.date);
+    const lbl = N<=7 ? TH_DOW1[d.getDay()] : ((N-1-i)%step===0 ? d.getDate() : '');
+    const val = x.reps>0 && N<=14 ? `<div class="cbar-val">${x.reps}</div>` : '';
+    return `<div class="cbar-wrap" title="${fmtDateShort(x.date)} · ${x.reps} ครั้ง">
+      ${val}<div class="cbar ${cls}" style="height:${Math.max(x.reps>0?6:2,h)}%"></div>
+      <div class="cbar-lbl">${lbl}</div></div>`;
+  }).join('');
+
+  // ---- heatmap: last 13 weeks aligned to Sunday ----
+  const weeks=13;
+  let start=addDays(TODAY,-(weeks*7-1));
+  const sd=parseYmd(start); start=addDays(start,-sd.getDay()); // back to Sunday
+  let cells='';
+  let c=start;
+  while(dayDiff(c,TODAY)>=0){
+    const day=state.days[c];
+    const pct=day?dayTotals(day).pct:0;
+    const lv=heatLevel(pct);
+    cells+=`<div class="hcell l${lv}" title="${fmtDateShort(c)} · ${pct}%"></div>`;
+    c=addDays(c,1);
+  }
+  // pad remainder of final column with hidden future cells
+  let dow=parseYmd(TODAY).getDay();
+  for(let k=dow+1;k<7;k++) cells+=`<div class="hcell future"></div>`;
+  document.getElementById('heatmap').innerHTML=cells;
+}
+
 /* =================== ACTIONS =================== */
-function addReps(id, delta){
+function addReps(id, deltaSets){
   const day=ensureDay(currentDate);
   const e=day.exercises.find(x=>x.id===id);
   if(!e) return;
+  const ss=setSizeOf(e);
   const before=e.reps;
-  e.reps=Math.max(0, Math.min(e.target, e.reps+delta));
+  e.reps=Math.max(0, Math.min(e.target, e.reps+deltaSets*ss));
   save();
-  renderToday(); renderHistory();
+  renderToday(); renderHistory(); renderStats();
   if(before<e.target && e.reps>=e.target){
     const card=document.getElementById('card-'+id);
     if(card){card.classList.add('celebrate');setTimeout(()=>card.classList.remove('celebrate'),500);}
     toast('🎉 ครบ '+e.target+' ครั้งแล้ว! เก่งมาก', true);
     if(navigator.vibrate) navigator.vibrate([30,40,30]);
-  }else if(delta>0){
+  }else if(deltaSets>0){
     if(navigator.vibrate) navigator.vibrate(15);
   }
 }
@@ -813,11 +1020,12 @@ function setDot(id, n){
   const day=ensureDay(currentDate);
   const e=day.exercises.find(x=>x.id===id);
   if(!e) return;
-  const targetReps=Math.min(e.target, n*SET_SIZE);
-  const curSets=Math.floor(e.reps/SET_SIZE);
+  const ss=setSizeOf(e);
+  const targetReps=Math.min(e.target, n*ss);
+  const curSets=Math.floor(e.reps/ss);
   // if tapping the last filled dot, unfill it; else fill up to tapped
-  e.reps = (curSets===n) ? Math.max(0,(n-1)*SET_SIZE) : targetReps;
-  save(); renderToday(); renderHistory();
+  e.reps = (curSets===n) ? Math.max(0,(n-1)*ss) : targetReps;
+  save(); renderToday(); renderHistory(); renderStats();
   if(navigator.vibrate) navigator.vibrate(12);
 }
 
@@ -828,17 +1036,25 @@ function openExerciseEditor(id){
   const modal=document.getElementById('modalExercise');
   const nameI=document.getElementById('inpExName');
   const tgtI=document.getElementById('inpExTarget');
+  const setI=document.getElementById('inpExSet');
   if(id){
     const e=state.profile.exercises.find(x=>x.id===id);
     document.getElementById('modalExTitle').textContent='แก้ไขท่า';
-    nameI.value=e.name; tgtI.value=e.target; pendingImg=e.image||null;
+    nameI.value=e.name; tgtI.value=e.target; setI.value=setSizeOf(e); pendingImg=e.image||null;
   }else{
     document.getElementById('modalExTitle').textContent='เพิ่มท่าใหม่';
-    nameI.value=''; tgtI.value=100; pendingImg=null;
+    nameI.value=''; tgtI.value=100; setI.value=10; pendingImg=null;
   }
+  updateSetsHint();
   updateImgPreview();
   modal.classList.add('active');
   setTimeout(()=>nameI.focus(),300);
+}
+function updateSetsHint(){
+  const tgt=parseInt(document.getElementById('inpExTarget').value,10)||0;
+  const ss=parseInt(document.getElementById('inpExSet').value,10)||1;
+  const sets=ss>0?Math.max(1,Math.ceil(tgt/ss)):0;
+  document.getElementById('setsHint').textContent=`= ${sets} เซ็ต ต่อการทำครบเป้าหมาย (${tgt} ครั้ง)`;
 }
 function updateImgPreview(){
   const p=document.getElementById('imgPreview');
@@ -854,14 +1070,15 @@ function updateImgPreview(){
 function saveExercise(){
   const name=document.getElementById('inpExName').value.trim();
   let tgt=parseInt(document.getElementById('inpExTarget').value,10);
+  let ss=parseInt(document.getElementById('inpExSet').value,10);
   if(!name){toast('กรุณาใส่ชื่อท่า');return;}
-  if(!tgt||tgt<10) tgt=10;
-  tgt=Math.round(tgt/10)*10; // keep in multiples of 10 (sets of 10)
+  if(!ss||ss<1) ss=1;
+  if(!tgt||tgt<1) tgt=ss;
   if(editingId){
     const e=state.profile.exercises.find(x=>x.id===editingId);
-    e.name=name; e.target=tgt; e.image=pendingImg;
+    e.name=name; e.target=tgt; e.setSize=ss; e.image=pendingImg;
   }else{
-    state.profile.exercises.push({id:uid(),name,target:tgt,image:pendingImg});
+    state.profile.exercises.push({id:uid(),name,target:tgt,setSize:ss,image:pendingImg});
   }
   save(); render();
   document.getElementById('modalExercise').classList.remove('active');
@@ -883,7 +1100,7 @@ function applyProfileToToday(){
     const day=ensureDay(currentDate);
     const oldReps={}; day.exercises.forEach(e=>oldReps[e.id]=e.reps);
     day.exercises=state.profile.exercises.map(e=>({
-      id:e.id,name:e.name,target:e.target,image:e.image||null,
+      id:e.id,name:e.name,target:e.target,setSize:setSizeOf(e),image:e.image||null,
       reps:Math.min(e.target, oldReps[e.id]||0)
     }));
     save(); render(); goTab('today'); toast('ซิงค์วันนี้กับโปรไฟล์แล้ว ✓', true);
@@ -999,8 +1216,8 @@ document.getElementById('dateNext').addEventListener('click',()=>{
 document.getElementById('exerciseList').addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el)return;
   const id=el.dataset.id, act=el.dataset.act;
-  if(act==='plus') addReps(id,SET_SIZE);
-  else if(act==='minus') addReps(id,-SET_SIZE);
+  if(act==='plus') addReps(id,1);
+  else if(act==='minus') addReps(id,-1);
   else if(act==='setdot') setDot(id, parseInt(el.dataset.n,10));
   else if(act==='view'){
     const day=viewDay(currentDate);const ex=day.exercises.find(x=>x.id===id);
@@ -1029,8 +1246,13 @@ document.getElementById('linkApplyToday').addEventListener('click',applyProfileT
 // exercise editor
 document.getElementById('btnExSave').addEventListener('click',saveExercise);
 document.getElementById('btnExCancel').addEventListener('click',()=>document.getElementById('modalExercise').classList.remove('active'));
-document.getElementById('tgtPlus').addEventListener('click',()=>{const i=document.getElementById('inpExTarget');i.value=(parseInt(i.value,10)||0)+10;});
-document.getElementById('tgtMinus').addEventListener('click',()=>{const i=document.getElementById('inpExTarget');i.value=Math.max(10,(parseInt(i.value,10)||20)-10);});
+function stepVal(id,delta,min){const i=document.getElementById(id);i.value=Math.max(min,(parseInt(i.value,10)||0)+delta);updateSetsHint();}
+document.getElementById('tgtPlus').addEventListener('click',()=>{const ss=parseInt(document.getElementById('inpExSet').value,10)||10;stepVal('inpExTarget',ss,1);});
+document.getElementById('tgtMinus').addEventListener('click',()=>{const ss=parseInt(document.getElementById('inpExSet').value,10)||10;stepVal('inpExTarget',-ss,1);});
+document.getElementById('setPlus').addEventListener('click',()=>stepVal('inpExSet',1,1));
+document.getElementById('setMinus').addEventListener('click',()=>stepVal('inpExSet',-1,1));
+document.getElementById('inpExTarget').addEventListener('input',updateSetsHint);
+document.getElementById('inpExSet').addEventListener('input',updateSetsHint);
 document.getElementById('btnPickImg').addEventListener('click',()=>document.getElementById('fileImg').click());
 document.getElementById('imgPreview').addEventListener('click',()=>{ if(pendingImg) openViewer(document.getElementById('inpExName').value||'รูปอ้างอิง',pendingImg,''); else document.getElementById('fileImg').click(); });
 document.getElementById('btnRmImg').addEventListener('click',()=>{pendingImg=null;updateImgPreview();});
@@ -1058,6 +1280,19 @@ document.getElementById('rowReset').addEventListener('click',()=>{
 ['modalExercise','modalConfirm'].forEach(idm=>{
   document.getElementById(idm).addEventListener('click',e=>{if(e.target.id===idm)document.getElementById(idm).classList.remove('active');});
 });
+
+// stats range selector
+document.getElementById('rangeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.seg-btn'); if(!b)return;
+  document.querySelectorAll('#rangeSeg .seg-btn').forEach(x=>x.classList.toggle('active',x===b));
+  statsRange=parseInt(b.dataset.range,10);
+  renderStats();
+});
+
+// PWA service worker (offline / add-to-home-screen)
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
 
 // go
 render();
