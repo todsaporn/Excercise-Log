@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0f172a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Exercise Log — ตัวติดตามออกกำลังกาย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b1120;
+    --bg-soft:#0f172a;
+    --card:#151f38;
+    --card-2:#1b284a;
+    --line:#26324f;
+    --txt:#e8edf7;
+    --txt-dim:#93a1bd;
+    --txt-faint:#64748b;
+    --brand:#6366f1;
+    --brand-2:#8b5cf6;
+    --accent:#22d3ee;
+    --good:#34d399;
+    --gold:#fbbf24;
+    --danger:#f87171;
+    --ring:rgba(99,102,241,.35);
+    --shadow:0 12px 40px -12px rgba(0,0,0,.6);
+    --radius:20px;
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-t:env(safe-area-inset-top,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Noto Sans Thai","Inter",system-ui,-apple-system,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(99,102,241,.16), transparent 60%),
+      radial-gradient(900px 500px at -10% 10%, rgba(34,211,238,.12), transparent 55%),
+      var(--bg);
+    color:var(--txt);
+    min-height:100dvh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .app{
+    max-width:520px;margin:0 auto;
+    padding: calc(var(--safe-t) + 14px) 16px calc(96px + var(--safe-b)) 16px;
+  }
+
+  /* ===== Header ===== */
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;margin-bottom:16px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .logo{
+    width:42px;height:42px;border-radius:13px;flex:none;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    display:grid;place-items:center;font-size:22px;
+    box-shadow:0 8px 22px -6px var(--ring);
+  }
+  .brand h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px;line-height:1.1}
+  .brand p{font-size:11.5px;margin:2px 0 0;color:var(--txt-dim);font-weight:500}
+  .icon-btn{
+    width:42px;height:42px;flex:none;border:1px solid var(--line);
+    background:var(--card);color:var(--txt);border-radius:13px;
+    font-size:18px;display:grid;place-items:center;cursor:pointer;
+    transition:.15s;
+  }
+  .icon-btn:active{transform:scale(.92);background:var(--card-2)}
+
+  /* ===== Date bar ===== */
+  .datebar{
+    display:flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:8px;margin-bottom:16px;
+  }
+  .datebar .navb{
+    width:40px;height:40px;border:none;border-radius:11px;flex:none;
+    background:var(--card-2);color:var(--txt);font-size:18px;cursor:pointer;transition:.15s;
+  }
+  .datebar .navb:active{transform:scale(.9);background:var(--brand)}
+  .datebar .dinfo{flex:1;text-align:center;min-width:0}
+  .datebar .dinfo .dtitle{font-weight:700;font-size:15px}
+  .datebar .dinfo .dsub{font-size:11.5px;color:var(--txt-dim);margin-top:1px}
+  .today-chip{
+    font-size:10px;font-weight:700;color:#0b1120;background:var(--accent);
+    padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;
+  }
+
+  /* ===== Summary ring ===== */
+  .summary{
+    display:flex;align-items:center;gap:16px;
+    background:linear-gradient(135deg,var(--card),var(--card-2));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;margin-bottom:18px;box-shadow:var(--shadow);
+  }
+  .ring-wrap{position:relative;width:96px;height:96px;flex:none}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-center{
+    position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+  }
+  .ring-center .big{font-size:24px;font-weight:800;line-height:1}
+  .ring-center .small{font-size:10px;color:var(--txt-dim);margin-top:2px}
+  .summary .meta{flex:1;min-width:0}
+  .summary .meta .lbl{font-size:12px;color:var(--txt-dim);font-weight:500}
+  .summary .meta .val{font-size:20px;font-weight:800;margin:2px 0 8px}
+  .summary .meta .val b{color:var(--accent)}
+  .mini-stats{display:flex;gap:8px}
+  .mini{
+    flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:12px;padding:8px 10px;text-align:center;
+  }
+  .mini .n{font-size:16px;font-weight:800}
+  .mini .t{font-size:10px;color:var(--txt-dim);margin-top:1px}
+
+  /* ===== Section title ===== */
+  .sec-title{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:6px 2px 12px;
+  }
+  .sec-title h2{font-size:14px;margin:0;font-weight:700;color:var(--txt-dim);letter-spacing:.3px;text-transform:uppercase}
+  .sec-title .link{font-size:12.5px;color:var(--brand);cursor:pointer;font-weight:600}
+
+  /* ===== Exercise card ===== */
+  .ex-card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px;margin-bottom:14px;
+    transition:.2s;position:relative;overflow:hidden;
+  }
+  .ex-card.done{border-color:rgba(52,211,153,.5)}
+  .ex-card.done::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(135deg,rgba(52,211,153,.08),transparent 55%);
+  }
+  .ex-head{display:flex;align-items:center;gap:12px}
+  .thumb{
+    width:56px;height:56px;border-radius:14px;flex:none;overflow:hidden;
+    background:linear-gradient(135deg,var(--card-2),#243056);
+    display:grid;place-items:center;cursor:pointer;position:relative;
+    border:1px solid var(--line);
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .ph{font-size:24px;opacity:.6}
+  .thumb .zoom{
+    position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:6px;
+    background:rgba(0,0,0,.55);display:grid;place-items:center;font-size:9px;
+  }
+  .ex-info{flex:1;min-width:0}
+  .ex-name{font-weight:700;font-size:15.5px;display:flex;align-items:center;gap:6px}
+  .ex-name .check{color:var(--good);font-size:15px}
+  .ex-count{font-size:12.5px;color:var(--txt-dim);margin-top:3px}
+  .ex-count b{color:var(--txt);font-size:14px}
+  .ex-count .tgt{color:var(--txt-faint)}
+
+  .pbar{height:9px;border-radius:20px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:12px}
+  .pfill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .ex-card.done .pfill{background:linear-gradient(90deg,var(--good),#10b981)}
+
+  .dots{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+  .dot{
+    width:22px;height:22px;border-radius:7px;font-size:10px;font-weight:700;
+    display:grid;place-items:center;cursor:pointer;transition:.15s;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--txt-faint);
+  }
+  .dot.filled{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;border-color:transparent}
+  .ex-card.done .dot.filled{background:linear-gradient(135deg,var(--good),#10b981)}
+  .dot:active{transform:scale(.85)}
+
+  .ex-actions{display:flex;gap:8px;margin-top:13px}
+  .btn{
+    border:none;border-radius:13px;font-family:inherit;font-weight:700;
+    cursor:pointer;transition:.15s;font-size:14px;
+  }
+  .btn:active{transform:scale(.96)}
+  .btn-add{
+    flex:1;padding:12px;color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    box-shadow:0 8px 20px -8px var(--ring);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .btn-add:disabled{opacity:.45;box-shadow:none;filter:grayscale(.3)}
+  .btn-sub{
+    width:48px;padding:12px 0;background:var(--card-2);color:var(--txt-dim);
+    border:1px solid var(--line);font-size:18px;
+  }
+  .btn-sub:disabled{opacity:.3}
+
+  /* ===== Empty state ===== */
+  .empty{
+    text-align:center;padding:44px 20px;color:var(--txt-dim);
+    background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);
+  }
+  .empty .em{font-size:44px;margin-bottom:10px}
+  .empty p{margin:6px 0 16px;font-size:13.5px;line-height:1.6}
+
+  /* ===== Bottom nav ===== */
+  nav.tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    display:flex;justify-content:center;
+    padding:0 12px calc(10px + var(--safe-b));
+    pointer-events:none;
+  }
+  .tabbar-inner{
+    pointer-events:auto;display:flex;gap:4px;width:100%;max-width:496px;
+    background:rgba(15,23,42,.86);backdrop-filter:blur(16px);
+    border:1px solid var(--line);border-radius:20px;padding:6px;
+    box-shadow:0 -8px 30px -10px rgba(0,0,0,.6);
+  }
+  .tab{
+    flex:1;border:none;background:none;color:var(--txt-faint);
+    font-family:inherit;font-weight:600;font-size:10.5px;cursor:pointer;
+    padding:8px 4px;border-radius:14px;transition:.18s;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+  }
+  .tab .ti{font-size:19px;line-height:1}
+  .tab.active{color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+  .tab:active{transform:scale(.94)}
+
+  /* ===== Views ===== */
+  .view{display:none;animation:fade .3s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ===== Profile / manage ===== */
+  .mgr-item{
+    display:flex;align-items:center;gap:12px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:11px;margin-bottom:11px;
+  }
+  .mgr-item .thumb{width:48px;height:48px;border-radius:12px}
+  .mgr-item .mi-info{flex:1;min-width:0}
+  .mgr-item .mi-name{font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mgr-item .mi-sub{font-size:11.5px;color:var(--txt-dim);margin-top:2px}
+  .mgr-item .mi-act{display:flex;gap:6px}
+  .mini-btn{
+    width:36px;height:36px;border-radius:11px;border:1px solid var(--line);
+    background:var(--card-2);color:var(--txt);font-size:15px;cursor:pointer;transition:.15s;
+    display:grid;place-items:center;
+  }
+  .mini-btn:active{transform:scale(.9)}
+  .mini-btn.del{color:var(--danger)}
+
+  .add-ex-btn{
+    width:100%;padding:14px;border-radius:16px;cursor:pointer;
+    border:1px dashed var(--brand);background:rgba(99,102,241,.08);
+    color:var(--brand);font-family:inherit;font-weight:700;font-size:14px;
+    display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s;
+  }
+  .add-ex-btn:active{transform:scale(.98);background:rgba(99,102,241,.16)}
+
+  .note-box{
+    background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.25);
+    border-radius:14px;padding:12px 14px;font-size:12.5px;color:var(--txt-dim);
+    line-height:1.6;margin-bottom:16px;
+  }
+  .note-box b{color:var(--accent)}
+
+  .settings-group{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;margin-bottom:16px;
+  }
+  .set-row{
+    display:flex;align-items:center;gap:12px;padding:14px;
+    border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;
+  }
+  .set-row:last-child{border-bottom:none}
+  .set-row:active{background:var(--card-2)}
+  .set-row .si{font-size:20px;width:26px;text-align:center;flex:none}
+  .set-row .sc{flex:1;min-width:0}
+  .set-row .sc .st{font-weight:600;font-size:14px}
+  .set-row .sc .sd{font-size:11.5px;color:var(--txt-dim);margin-top:2px}
+  .set-row .sa{color:var(--txt-faint);font-size:16px}
+
+  /* ===== History ===== */
+  .hist-item{
+    display:flex;align-items:center;gap:13px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:13px;margin-bottom:11px;cursor:pointer;transition:.15s;
+  }
+  .hist-item:active{transform:scale(.99);background:var(--card-2)}
+  .hist-ring{width:46px;height:46px;flex:none;position:relative}
+  .hist-ring .hc{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:800}
+  .hist-info{flex:1;min-width:0}
+  .hist-date{font-weight:700;font-size:14px}
+  .hist-sub{font-size:11.5px;color:var(--txt-dim);margin-top:2px}
+  .hist-badge{
+    font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;
+  }
+  .hist-badge.full{background:rgba(52,211,153,.16);color:var(--good)}
+  .hist-badge.partial{background:rgba(251,191,36,.16);color:var(--gold)}
+  .hist-badge.none{background:rgba(148,163,184,.12);color:var(--txt-faint)}
+
+  /* ===== Modal ===== */
+  .modal-bg{
+    position:fixed;inset:0;z-index:60;background:rgba(2,6,20,.72);
+    backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;
+    animation:fade .2s ease;
+  }
+  .modal-bg.active{display:flex}
+  .modal{
+    width:100%;max-width:520px;background:var(--bg-soft);
+    border:1px solid var(--line);border-bottom:none;
+    border-radius:26px 26px 0 0;padding:20px 18px calc(22px + var(--safe-b));
+    animation:slideup .3s cubic-bezier(.2,.8,.2,1);max-height:92dvh;overflow-y:auto;
+  }
+  @keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
+  .modal .grip{width:40px;height:4px;border-radius:20px;background:var(--line);margin:0 auto 16px}
+  .modal h3{margin:0 0 16px;font-size:18px;font-weight:800}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--txt-dim);margin-bottom:7px}
+  .field input[type=text],.field input[type=number]{
+    width:100%;padding:13px 14px;border-radius:13px;font-family:inherit;font-size:15px;
+    background:var(--card);border:1px solid var(--line);color:var(--txt);transition:.15s;
+  }
+  .field input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--ring)}
+  .img-pick{
+    display:flex;align-items:center;gap:12px;
+  }
+  .img-preview{
+    width:76px;height:76px;border-radius:14px;flex:none;overflow:hidden;
+    background:var(--card);border:1px solid var(--line);display:grid;place-items:center;
+    cursor:pointer;position:relative;
+  }
+  .img-preview img{width:100%;height:100%;object-fit:cover}
+  .img-preview .ph{font-size:28px;opacity:.5}
+  .img-pick-info{flex:1}
+  .img-pick-info .pick-btn{
+    padding:10px 14px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--txt);font-family:inherit;font-weight:600;
+    font-size:13px;cursor:pointer;transition:.15s;
+  }
+  .img-pick-info .pick-btn:active{transform:scale(.95)}
+  .img-pick-info .rm{color:var(--danger);font-size:12px;margin-top:8px;cursor:pointer;display:inline-block}
+  .img-pick-info .hint{font-size:11px;color:var(--txt-faint);margin-top:6px;line-height:1.5}
+
+  .stepper{display:flex;align-items:center;gap:0;background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .stepper button{width:52px;padding:13px 0;border:none;background:var(--card-2);color:var(--txt);font-size:20px;cursor:pointer;font-family:inherit}
+  .stepper button:active{background:var(--brand)}
+  .stepper input{flex:1;text-align:center;border:none;background:none;color:var(--txt);font-size:16px;font-weight:700;font-family:inherit;width:100%}
+  .stepper input:focus{outline:none}
+
+  .modal-actions{display:flex;gap:10px;margin-top:8px}
+  .btn-primary{
+    flex:1;padding:14px;border-radius:14px;border:none;cursor:pointer;
+    font-family:inherit;font-weight:800;font-size:15px;color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    box-shadow:0 8px 20px -8px var(--ring);transition:.15s;
+  }
+  .btn-primary:active{transform:scale(.97)}
+  .btn-ghost{
+    padding:14px 18px;border-radius:14px;cursor:pointer;
+    font-family:inherit;font-weight:700;font-size:15px;
+    background:var(--card);border:1px solid var(--line);color:var(--txt-dim);transition:.15s;
+  }
+  .btn-ghost:active{transform:scale(.97)}
+
+  /* Image viewer */
+  .viewer{
+    position:fixed;inset:0;z-index:80;background:rgba(2,6,20,.94);
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:20px;animation:fade .2s;
+  }
+  .viewer.active{display:flex}
+  .viewer img{max-width:100%;max-height:78dvh;border-radius:18px;box-shadow:var(--shadow)}
+  .viewer .vname{margin-top:18px;font-size:18px;font-weight:800;text-align:center}
+  .viewer .vsub{margin-top:4px;font-size:13px;color:var(--txt-dim)}
+  .viewer .vclose{
+    position:absolute;top:calc(var(--safe-t) + 16px);right:16px;
+    width:44px;height:44px;border-radius:14px;border:1px solid var(--line);
+    background:rgba(21,31,56,.8);color:#fff;font-size:20px;cursor:pointer;
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
+    bottom:calc(96px + var(--safe-b));z-index:90;opacity:0;pointer-events:none;
+    background:var(--card-2);border:1px solid var(--line);color:var(--txt);
+    padding:11px 18px;border-radius:14px;font-size:13.5px;font-weight:600;
+    box-shadow:var(--shadow);transition:.25s;white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.good{border-color:rgba(52,211,153,.5)}
+
+  .file-in{display:none}
+  .celebrate{animation:pop .5s ease}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="top">
+    <div class="brand">
+      <div class="logo">💪</div>
+      <div>
+        <h1>Exercise Log</h1>
+        <p id="profileNameLabel">ตัวติดตามออกกำลังกาย</p>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnHeaderSettings" title="ตั้งค่า">⚙️</button>
+  </header>
+
+  <!-- ======== TODAY VIEW ======== -->
+  <section class="view active" id="view-today">
+    <div class="datebar">
+      <button class="navb" id="datePrev">‹</button>
+      <div class="dinfo">
+        <div class="dtitle" id="dateTitle">วันนี้</div>
+        <div class="dsub" id="dateSub"></div>
+      </div>
+      <button class="navb" id="dateNext">›</button>
+    </div>
+
+    <div class="summary" id="summaryBox">
+      <div class="ring-wrap">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+          <circle id="ringProg" cx="48" cy="48" r="42" fill="none" stroke="url(#grad)" stroke-width="9" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="ring-center">
+          <div class="big" id="ringPct">0%</div>
+          <div class="small">สำเร็จ</div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="lbl">รวมทั้งวัน</div>
+        <div class="val"><b id="totalReps">0</b> / <span id="totalTarget">0</span> ครั้ง</div>
+        <div class="mini-stats">
+          <div class="mini"><div class="n" id="statDone">0</div><div class="t">ท่าที่ครบ</div></div>
+          <div class="mini"><div class="n" id="statSets">0</div><div class="t">เซ็ต (×10)</div></div>
+          <div class="mini"><div class="n" id="statLeft">0</div><div class="t">เหลืออีก</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-title">
+      <h2>ท่าออกกำลังกายวันนี้</h2>
+      <span class="link" id="linkEditProfile">แก้ไขท่า</span>
+    </div>
+
+    <div id="exerciseList"></div>
+  </section>
+
+  <!-- ======== HISTORY VIEW ======== -->
+  <section class="view" id="view-history">
+    <div class="sec-title"><h2>ประวัติย้อนหลัง</h2></div>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ======== PROFILE VIEW ======== -->
+  <section class="view" id="view-profile">
+    <div class="note-box">
+      🧩 <b>โปรไฟล์</b> คือชุดท่าออกกำลังกายมาตรฐานของคุณ การแก้ไขที่นี่จะมีผลกับ<b>ข้อมูลใหม่</b>เท่านั้น — วันที่บันทึกไปแล้วจะถูกเก็บไว้ตามเดิมไม่เปลี่ยนแปลง
+    </div>
+
+    <div class="sec-title">
+      <h2>ท่าในโปรไฟล์</h2>
+      <span class="link" id="linkApplyToday">ใช้กับวันนี้</span>
+    </div>
+    <div id="profileList"></div>
+    <button class="add-ex-btn" id="btnAddExercise">＋ เพิ่มท่าใหม่</button>
+
+    <div class="sec-title" style="margin-top:26px"><h2>ข้อมูล & การจัดการ</h2></div>
+    <div class="settings-group">
+      <div class="set-row" id="rowExport">
+        <div class="si">📤</div>
+        <div class="sc"><div class="st">ส่งออกข้อมูล (ไฟล์ .json)</div><div class="sd">สำรองข้อมูล / นำไปแก้ไขต่อได้</div></div>
+        <div class="sa">›</div>
+      </div>
+      <div class="set-row" id="rowImport">
+        <div class="si">📥</div>
+        <div class="sc"><div class="st">นำเข้าข้อมูล</div><div class="sd">กู้คืนจากไฟล์ที่สำรองไว้</div></div>
+        <div class="sa">›</div>
+      </div>
+      <div class="set-row" id="rowReset">
+        <div class="si">🗑️</div>
+        <div class="sc"><div class="st" style="color:var(--danger)">ล้างข้อมูลทั้งหมด</div><div class="sd">ลบทุกอย่างและเริ่มใหม่</div></div>
+        <div class="sa">›</div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--txt-faint);font-size:11px;margin-top:20px">
+      ข้อมูลถูกเก็บไว้ในเครื่องของคุณเอง (บนเบราว์เซอร์)<br/>Exercise Log · เก็บทุกครั้งที่ขยับ 💪
+    </p>
+  </section>
+
+  <!-- Bottom nav -->
+  <nav class="tabbar">
+    <div class="tabbar-inner">
+      <button class="tab active" data-tab="today"><span class="ti">🏠</span>วันนี้</button>
+      <button class="tab" data-tab="history"><span class="ti">📅</span>ประวัติ</button>
+      <button class="tab" data-tab="profile"><span class="ti">🧩</span>โปรไฟล์</button>
+    </div>
+  </nav>
+</div>
+
+<!-- Exercise editor modal -->
+<div class="modal-bg" id="modalExercise">
+  <div class="modal">
+    <div class="grip"></div>
+    <h3 id="modalExTitle">เพิ่มท่าใหม่</h3>
+    <div class="field">
+      <label>ชื่อท่า</label>
+      <input type="text" id="inpExName" placeholder="เช่น วิดพื้น, สควอท, ซิทอัพ" maxlength="40"/>
+    </div>
+    <div class="field">
+      <label>เป้าหมาย (ครั้ง)</label>
+      <div class="stepper">
+        <button type="button" id="tgtMinus">−</button>
+        <input type="number" id="inpExTarget" value="100" min="10" step="10" inputmode="numeric"/>
+        <button type="button" id="tgtPlus">＋</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>รูปอ้างอิง (ไม่บังคับ)</label>
+      <div class="img-pick">
+        <div class="img-preview" id="imgPreview"><span class="ph">🖼️</span></div>
+        <div class="img-pick-info">
+          <button type="button" class="pick-btn" id="btnPickImg">เลือกรูป…</button>
+          <div class="rm" id="btnRmImg" style="display:none">ลบรูป</div>
+          <div class="hint">แสดงรูปเต็มเมื่อแตะที่รูปย่อ · รองรับ JPG/PNG</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnExCancel">ยกเลิก</button>
+      <button class="btn-primary" id="btnExSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-bg" id="modalConfirm">
+  <div class="modal">
+    <div class="grip"></div>
+    <h3 id="confirmTitle">ยืนยัน</h3>
+    <p id="confirmMsg" style="color:var(--txt-dim);font-size:14px;line-height:1.6;margin:0 0 20px"></p>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnConfirmNo">ยกเลิก</button>
+      <button class="btn-primary" id="btnConfirmYes" style="background:linear-gradient(135deg,#f87171,#ef4444);box-shadow:none">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image viewer -->
+<div class="viewer" id="imgViewer">
+  <button class="vclose" id="viewerClose">✕</button>
+  <img id="viewerImg" src="" alt=""/>
+  <div class="vname" id="viewerName"></div>
+  <div class="vsub" id="viewerSub"></div>
+</div>
+
+<input type="file" accept="image/*" class="file-in" id="fileImg"/>
+<input type="file" accept="application/json,.json" class="file-in" id="fileImport"/>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Exercise Log — mobile PWA-style tracker
+   Data model (localStorage key: "exlog.v1"):
+   {
+     profile: { name, exercises:[{id,name,target,image}] },
+     days: { "YYYY-MM-DD": { exercises:[{id,name,target,image,reps}] } }
+   }
+   - profile = template for NEW days only.
+   - each day snapshots its own exercises so history is immutable.
+   ============================================================ */
+
+const STORE_KEY = "exlog.v1";
+const SET_SIZE = 10;
+const RING_CIRC = 2 * Math.PI * 42;
+
+const uid = () => 'e' + Math.random().toString(36).slice(2, 9);
+
+/* ---- date helpers (local, not UTC) ---- */
+function ymd(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+const TODAY = ymd(new Date());
+const TH_DAYS=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function parseYmd(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function fmtDateFull(s){
+  const d=parseYmd(s);
+  return `วัน${TH_DAYS[d.getDay()]}ที่ ${d.getDate()} ${TH_MON[d.getMonth()]} ${d.getFullYear()+543}`;
+}
+function fmtDateShort(s){
+  const d=parseYmd(s);
+  return `${d.getDate()} ${TH_MON[d.getMonth()]} ${d.getFullYear()+543}`;
+}
+
+/* ---- state ---- */
+let state = load();
+let currentDate = TODAY;
+let editingId = null;      // exercise id being edited, or null for new
+let pendingImg = null;     // dataURL held in editor
+let confirmCb = null;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ const p=JSON.parse(raw); if(p && p.profile && p.days) return p; }
+  }catch(e){}
+  return seed();
+}
+function seed(){
+  return {
+    profile:{
+      name:"โปรแกรมของฉัน",
+      exercises:[
+        {id:uid(),name:"วิดพื้น (Push-up)",target:100,image:null},
+        {id:uid(),name:"สควอท (Squat)",target:100,image:null},
+        {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,image:null},
+      ]
+    },
+    days:{}
+  };
+}
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  }catch(e){
+    toast("บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลอาจเต็ม (รูปใหญ่เกินไป?)");
+  }
+}
+
+/* Ensure a day exists; snapshot from profile the first time it's touched. */
+function ensureDay(date){
+  if(!state.days[date]){
+    state.days[date] = {
+      exercises: state.profile.exercises.map(e=>({
+        id:e.id, name:e.name, target:e.target, image:e.image||null, reps:0
+      }))
+    };
+  }
+  return state.days[date];
+}
+/* Read-only view of a day: if not created yet, project current profile (reps 0). */
+function viewDay(date){
+  if(state.days[date]) return state.days[date];
+  return { exercises: state.profile.exercises.map(e=>({
+    id:e.id, name:e.name, target:e.target, image:e.image||null, reps:0
+  })) };
+}
+
+/* =================== RENDER =================== */
+function render(){
+  document.getElementById('profileNameLabel').textContent = state.profile.name || "ตัวติดตามออกกำลังกาย";
+  renderToday();
+  renderHistory();
+  renderProfile();
+}
+
+function renderToday(){
+  const day = viewDay(currentDate);
+  const list = document.getElementById('exerciseList');
+
+  // date bar
+  document.getElementById('dateTitle').innerHTML =
+    (currentDate===TODAY ? 'วันนี้ <span class="today-chip">TODAY</span>' : fmtDateShort(currentDate));
+  document.getElementById('dateSub').textContent = fmtDateFull(currentDate);
+  document.getElementById('dateNext').style.visibility = (currentDate>=TODAY)?'hidden':'visible';
+
+  // summary
+  let totalReps=0, totalTgt=0, doneCount=0;
+  day.exercises.forEach(e=>{
+    const r=Math.min(e.reps,e.target);
+    totalReps+=e.reps; totalTgt+=e.target;
+    if(e.reps>=e.target) doneCount++;
+  });
+  const pct = totalTgt>0 ? Math.min(100, Math.round(totalReps/totalTgt*100)) : 0;
+  document.getElementById('ringPct').textContent = pct+'%';
+  document.getElementById('totalReps').textContent = totalReps;
+  document.getElementById('totalTarget').textContent = totalTgt;
+  document.getElementById('statDone').textContent = doneCount;
+  document.getElementById('statSets').textContent = Math.floor(totalReps/SET_SIZE);
+  document.getElementById('statLeft').textContent = Math.max(0, totalTgt-totalReps);
+  const ring=document.getElementById('ringProg');
+  ring.style.strokeDashoffset = RING_CIRC*(1 - pct/100);
+
+  // list
+  if(day.exercises.length===0){
+    list.innerHTML = `<div class="empty">
+      <div class="em">🧘</div>
+      <p>ยังไม่มีท่าออกกำลังกาย<br/>ไปที่แท็บ "โปรไฟล์" เพื่อเพิ่มท่าของคุณ</p>
+      <button class="btn-primary" style="max-width:220px;margin:0 auto" onclick="goTab('profile')">เพิ่มท่าเลย</button>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = day.exercises.map((e,idx)=>{
+    const reps=e.reps, tgt=e.target;
+    const done=reps>=tgt;
+    const pctE=tgt>0?Math.min(100,Math.round(reps/tgt*100)):0;
+    const totalDots=Math.ceil(tgt/SET_SIZE);
+    const filledDots=Math.floor(reps/SET_SIZE);
+    let dots='';
+    for(let i=0;i<totalDots;i++){
+      dots+=`<div class="dot ${i<filledDots?'filled':''}" data-act="setdot" data-id="${e.id}" data-n="${i+1}">${(i+1)*SET_SIZE>tgt?tgt-(i*SET_SIZE):SET_SIZE}</div>`;
+    }
+    const thumb = e.image
+      ? `<div class="thumb" data-act="view" data-id="${e.id}"><img src="${e.image}" alt=""/><div class="zoom">⛶</div></div>`
+      : `<div class="thumb" data-act="view" data-id="${e.id}"><span class="ph">🏋️</span></div>`;
+    return `<div class="ex-card ${done?'done':''}" id="card-${e.id}">
+      <div class="ex-head">
+        ${thumb}
+        <div class="ex-info">
+          <div class="ex-name">${escapeHtml(e.name)} ${done?'<span class="check">✓</span>':''}</div>
+          <div class="ex-count"><b>${reps}</b> <span class="tgt">/ ${tgt} ครั้ง · ${filledDots}/${totalDots} เซ็ต</span></div>
+        </div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${pctE}%"></div></div>
+      <div class="dots">${dots}</div>
+      <div class="ex-actions">
+        <button class="btn btn-sub" data-act="minus" data-id="${e.id}" ${reps<=0?'disabled':''}>−10</button>
+        <button class="btn btn-add" data-act="plus" data-id="${e.id}" ${done?'disabled':''}>${done?'✓ ครบแล้ว':'＋ เพิ่ม 1 เซ็ต (10)'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  const dates=Object.keys(state.days).sort().reverse();
+  if(dates.length===0){
+    list.innerHTML=`<div class="empty"><div class="em">📭</div><p>ยังไม่มีประวัติ<br/>เริ่มบันทึกการออกกำลังกายวันนี้ได้เลย!</p></div>`;
+    return;
+  }
+  list.innerHTML=dates.map(date=>{
+    const day=state.days[date];
+    let reps=0,tgt=0,done=0;
+    day.exercises.forEach(e=>{reps+=e.reps;tgt+=e.target;if(e.reps>=e.target)done++;});
+    const pct=tgt>0?Math.min(100,Math.round(reps/tgt*100)):0;
+    const off=RING_CIRC/ (44/42) ; // scaled later inline
+    const r=18, c=2*Math.PI*r;
+    const badge = pct>=100?['full','สำเร็จ']:(pct>0?['partial','ทำบางส่วน']:['none','ยังไม่เริ่ม']);
+    const stroke = pct>=100?'#34d399':(pct>0?'#6366f1':'#475569');
+    return `<div class="hist-item" data-act="gohist" data-date="${date}">
+      <div class="hist-ring">
+        <svg width="46" height="46" viewBox="0 0 46 46">
+          <circle cx="23" cy="23" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/>
+          <circle cx="23" cy="23" r="${r}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"
+            stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct/100)}" transform="rotate(-90 23 23)"/>
+        </svg>
+        <div class="hc">${pct}%</div>
+      </div>
+      <div class="hist-info">
+        <div class="hist-date">${fmtDateShort(date)} ${date===TODAY?'· วันนี้':''}</div>
+        <div class="hist-sub">${reps} / ${tgt} ครั้ง · ${done}/${day.exercises.length} ท่าครบ</div>
+      </div>
+      <div class="hist-badge ${badge[0]}">${badge[1]}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderProfile(){
+  const list=document.getElementById('profileList');
+  const ex=state.profile.exercises;
+  if(ex.length===0){
+    list.innerHTML=`<div class="empty" style="padding:28px 20px"><div class="em">🧩</div><p>ยังไม่มีท่าในโปรไฟล์<br/>กดปุ่มด้านล่างเพื่อเพิ่มท่าแรก</p></div>`;
+    return;
+  }
+  list.innerHTML=ex.map(e=>{
+    const thumb=e.image
+      ? `<div class="thumb" data-act="pview" data-id="${e.id}"><img src="${e.image}"/><div class="zoom">⛶</div></div>`
+      : `<div class="thumb"><span class="ph">🏋️</span></div>`;
+    return `<div class="mgr-item">
+      ${thumb}
+      <div class="mi-info">
+        <div class="mi-name">${escapeHtml(e.name)}</div>
+        <div class="mi-sub">เป้าหมาย ${e.target} ครั้ง · ${Math.ceil(e.target/SET_SIZE)} เซ็ต ${e.image?'· มีรูป 🖼️':''}</div>
+      </div>
+      <div class="mi-act">
+        <button class="mini-btn" data-act="editp" data-id="${e.id}">✏️</button>
+        <button class="mini-btn del" data-act="delp" data-id="${e.id}">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* =================== ACTIONS =================== */
+function addReps(id, delta){
+  const day=ensureDay(currentDate);
+  const e=day.exercises.find(x=>x.id===id);
+  if(!e) return;
+  const before=e.reps;
+  e.reps=Math.max(0, Math.min(e.target, e.reps+delta));
+  save();
+  renderToday(); renderHistory();
+  if(before<e.target && e.reps>=e.target){
+    const card=document.getElementById('card-'+id);
+    if(card){card.classList.add('celebrate');setTimeout(()=>card.classList.remove('celebrate'),500);}
+    toast('🎉 ครบ '+e.target+' ครั้งแล้ว! เก่งมาก', true);
+    if(navigator.vibrate) navigator.vibrate([30,40,30]);
+  }else if(delta>0){
+    if(navigator.vibrate) navigator.vibrate(15);
+  }
+}
+/* tap a specific dot -> set reps to that many sets (toggle if already there) */
+function setDot(id, n){
+  const day=ensureDay(currentDate);
+  const e=day.exercises.find(x=>x.id===id);
+  if(!e) return;
+  const targetReps=Math.min(e.target, n*SET_SIZE);
+  const curSets=Math.floor(e.reps/SET_SIZE);
+  // if tapping the last filled dot, unfill it; else fill up to tapped
+  e.reps = (curSets===n) ? Math.max(0,(n-1)*SET_SIZE) : targetReps;
+  save(); renderToday(); renderHistory();
+  if(navigator.vibrate) navigator.vibrate(12);
+}
+
+/* =================== EXERCISE EDITOR =================== */
+function openExerciseEditor(id){
+  editingId=id||null;
+  pendingImg=null;
+  const modal=document.getElementById('modalExercise');
+  const nameI=document.getElementById('inpExName');
+  const tgtI=document.getElementById('inpExTarget');
+  if(id){
+    const e=state.profile.exercises.find(x=>x.id===id);
+    document.getElementById('modalExTitle').textContent='แก้ไขท่า';
+    nameI.value=e.name; tgtI.value=e.target; pendingImg=e.image||null;
+  }else{
+    document.getElementById('modalExTitle').textContent='เพิ่มท่าใหม่';
+    nameI.value=''; tgtI.value=100; pendingImg=null;
+  }
+  updateImgPreview();
+  modal.classList.add('active');
+  setTimeout(()=>nameI.focus(),300);
+}
+function updateImgPreview(){
+  const p=document.getElementById('imgPreview');
+  const rm=document.getElementById('btnRmImg');
+  if(pendingImg){
+    p.innerHTML=`<img src="${pendingImg}"/>`;
+    rm.style.display='inline-block';
+  }else{
+    p.innerHTML=`<span class="ph">🖼️</span>`;
+    rm.style.display='none';
+  }
+}
+function saveExercise(){
+  const name=document.getElementById('inpExName').value.trim();
+  let tgt=parseInt(document.getElementById('inpExTarget').value,10);
+  if(!name){toast('กรุณาใส่ชื่อท่า');return;}
+  if(!tgt||tgt<10) tgt=10;
+  tgt=Math.round(tgt/10)*10; // keep in multiples of 10 (sets of 10)
+  if(editingId){
+    const e=state.profile.exercises.find(x=>x.id===editingId);
+    e.name=name; e.target=tgt; e.image=pendingImg;
+  }else{
+    state.profile.exercises.push({id:uid(),name,target:tgt,image:pendingImg});
+  }
+  save(); render();
+  document.getElementById('modalExercise').classList.remove('active');
+  toast(editingId?'บันทึกการแก้ไขแล้ว':'เพิ่มท่าใหม่แล้ว 💪', true);
+}
+function deleteProfileExercise(id){
+  const e=state.profile.exercises.find(x=>x.id===id);
+  askConfirm('ลบท่านี้?', `ต้องการลบ "${e?e.name:''}" ออกจากโปรไฟล์หรือไม่?\n(ข้อมูลในวันที่บันทึกไว้แล้วจะยังคงอยู่)`, ()=>{
+    state.profile.exercises=state.profile.exercises.filter(x=>x.id!==id);
+    save(); render(); toast('ลบท่าแล้ว');
+  });
+}
+
+/* apply current profile to today's (unsaved) day, or refresh new exercises into today */
+function applyProfileToToday(){
+  askConfirm('ใช้โปรไฟล์กับวันนี้?',
+    'จะซิงค์รายการท่าของวันนี้ให้ตรงกับโปรไฟล์ล่าสุด\n• ท่าใหม่จะถูกเพิ่ม (เริ่มที่ 0)\n• ท่าที่บันทึกครั้งไว้แล้วจะเก็บจำนวนครั้งเดิม\n• ท่าที่ลบออกจากโปรไฟล์จะถูกนำออกจากวันนี้',
+  ()=>{
+    const day=ensureDay(currentDate);
+    const oldReps={}; day.exercises.forEach(e=>oldReps[e.id]=e.reps);
+    day.exercises=state.profile.exercises.map(e=>({
+      id:e.id,name:e.name,target:e.target,image:e.image||null,
+      reps:Math.min(e.target, oldReps[e.id]||0)
+    }));
+    save(); render(); goTab('today'); toast('ซิงค์วันนี้กับโปรไฟล์แล้ว ✓', true);
+  }, false);
+}
+
+/* =================== IMAGE HANDLING =================== */
+function handleImageFile(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      // resize to max 900px longest side, compress to jpeg for localStorage
+      const MAX=900;
+      let{width:w,height:h}=img;
+      if(w>h && w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      else if(h>=w && h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const ctx=c.getContext('2d');
+      ctx.fillStyle='#0f172a';ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      pendingImg=c.toDataURL('image/jpeg',0.82);
+      updateImgPreview();
+    };
+    img.onerror=()=>toast('ไฟล์รูปไม่ถูกต้อง');
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* =================== IMAGE VIEWER =================== */
+function openViewer(name,image,sub){
+  const v=document.getElementById('imgViewer');
+  if(!image){toast('ท่านี้ยังไม่มีรูปอ้างอิง');return;}
+  document.getElementById('viewerImg').src=image;
+  document.getElementById('viewerName').textContent=name;
+  document.getElementById('viewerSub').textContent=sub||'';
+  v.classList.add('active');
+}
+
+/* =================== CONFIRM =================== */
+function askConfirm(title,msg,cb,danger=true){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  const yes=document.getElementById('btnConfirmYes');
+  yes.style.background=danger?'linear-gradient(135deg,#f87171,#ef4444)':'linear-gradient(135deg,#6366f1,#8b5cf6)';
+  confirmCb=cb;
+  document.getElementById('modalConfirm').classList.add('active');
+}
+
+/* =================== IMPORT / EXPORT =================== */
+function exportData(){
+  const data=JSON.stringify(state,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`exercise-log-${TODAY}.json`;
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+  toast('ส่งออกไฟล์แล้ว 📤', true);
+}
+function importData(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(!p.profile||!p.days) throw 0;
+      askConfirm('นำเข้าข้อมูล?','ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้ทั้งหมด ต้องการดำเนินการต่อหรือไม่?',()=>{
+        state=p; save(); render(); goTab('today'); toast('นำเข้าข้อมูลสำเร็จ ✓', true);
+      });
+    }catch(e){toast('ไฟล์ไม่ถูกต้อง — ต้องเป็นไฟล์ที่ส่งออกจากแอปนี้');}
+  };
+  r.readAsText(file);
+}
+
+/* =================== NAV / TABS =================== */
+function goTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* =================== HELPERS =================== */
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+let toastTimer;
+function toast(msg,good){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.toggle('good',!!good);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* =================== EVENT WIRING =================== */
+// tabs
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>goTab(t.dataset.tab)));
+document.getElementById('btnHeaderSettings').addEventListener('click',()=>goTab('profile'));
+document.getElementById('linkEditProfile').addEventListener('click',()=>goTab('profile'));
+
+// date nav
+document.getElementById('datePrev').addEventListener('click',()=>{
+  const d=parseYmd(currentDate);d.setDate(d.getDate()-1);currentDate=ymd(d);renderToday();
+});
+document.getElementById('dateNext').addEventListener('click',()=>{
+  if(currentDate>=TODAY)return;
+  const d=parseYmd(currentDate);d.setDate(d.getDate()+1);currentDate=ymd(d);renderToday();
+});
+
+// exercise list (delegated)
+document.getElementById('exerciseList').addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el)return;
+  const id=el.dataset.id, act=el.dataset.act;
+  if(act==='plus') addReps(id,SET_SIZE);
+  else if(act==='minus') addReps(id,-SET_SIZE);
+  else if(act==='setdot') setDot(id, parseInt(el.dataset.n,10));
+  else if(act==='view'){
+    const day=viewDay(currentDate);const ex=day.exercises.find(x=>x.id===id);
+    if(ex) openViewer(ex.name, ex.image, `เป้าหมาย ${ex.target} ครั้ง · ทำแล้ว ${ex.reps} ครั้ง`);
+  }
+});
+
+// history list (delegated)
+document.getElementById('historyList').addEventListener('click',e=>{
+  const el=e.target.closest('[data-act="gohist"]'); if(!el)return;
+  currentDate=el.dataset.date; goTab('today'); renderToday();
+});
+
+// profile list (delegated)
+document.getElementById('profileList').addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el)return;
+  const id=el.dataset.id, act=el.dataset.act;
+  if(act==='editp') openExerciseEditor(id);
+  else if(act==='delp') deleteProfileExercise(id);
+  else if(act==='pview'){const ex=state.profile.exercises.find(x=>x.id===id);if(ex)openViewer(ex.name,ex.image,`เป้าหมาย ${ex.target} ครั้ง`);}
+});
+
+document.getElementById('btnAddExercise').addEventListener('click',()=>openExerciseEditor(null));
+document.getElementById('linkApplyToday').addEventListener('click',applyProfileToToday);
+
+// exercise editor
+document.getElementById('btnExSave').addEventListener('click',saveExercise);
+document.getElementById('btnExCancel').addEventListener('click',()=>document.getElementById('modalExercise').classList.remove('active'));
+document.getElementById('tgtPlus').addEventListener('click',()=>{const i=document.getElementById('inpExTarget');i.value=(parseInt(i.value,10)||0)+10;});
+document.getElementById('tgtMinus').addEventListener('click',()=>{const i=document.getElementById('inpExTarget');i.value=Math.max(10,(parseInt(i.value,10)||20)-10);});
+document.getElementById('btnPickImg').addEventListener('click',()=>document.getElementById('fileImg').click());
+document.getElementById('imgPreview').addEventListener('click',()=>{ if(pendingImg) openViewer(document.getElementById('inpExName').value||'รูปอ้างอิง',pendingImg,''); else document.getElementById('fileImg').click(); });
+document.getElementById('btnRmImg').addEventListener('click',()=>{pendingImg=null;updateImgPreview();});
+document.getElementById('fileImg').addEventListener('change',e=>{handleImageFile(e.target.files[0]);e.target.value='';});
+
+// confirm
+document.getElementById('btnConfirmYes').addEventListener('click',()=>{document.getElementById('modalConfirm').classList.remove('active');if(confirmCb)confirmCb();confirmCb=null;});
+document.getElementById('btnConfirmNo').addEventListener('click',()=>{document.getElementById('modalConfirm').classList.remove('active');confirmCb=null;});
+
+// viewer
+document.getElementById('viewerClose').addEventListener('click',()=>document.getElementById('imgViewer').classList.remove('active'));
+document.getElementById('imgViewer').addEventListener('click',e=>{if(e.target.id==='imgViewer')document.getElementById('imgViewer').classList.remove('active');});
+
+// data management
+document.getElementById('rowExport').addEventListener('click',exportData);
+document.getElementById('rowImport').addEventListener('click',()=>document.getElementById('fileImport').click());
+document.getElementById('fileImport').addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value='';});
+document.getElementById('rowReset').addEventListener('click',()=>{
+  askConfirm('ล้างข้อมูลทั้งหมด?','การกระทำนี้จะลบโปรไฟล์และประวัติทั้งหมดอย่างถาวร ไม่สามารถกู้คืนได้ (แนะนำให้ส่งออกไฟล์ไว้ก่อน)',()=>{
+    state=seed();currentDate=TODAY;save();render();goTab('today');toast('ล้างข้อมูลแล้ว เริ่มต้นใหม่');
+  });
+});
+
+// close modals on backdrop tap
+['modalExercise','modalConfirm'].forEach(idm=>{
+  document.getElementById(idm).addEventListener('click',e=>{if(e.target.id===idm)document.getElementById(idm).classList.remove('active');});
+});
+
+// go
+render();
+</script>
+</body>
+</html>
