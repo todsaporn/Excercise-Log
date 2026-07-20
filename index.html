@@ -578,6 +578,11 @@
 
     <div class="sec-title" style="margin-top:26px"><h2>ข้อมูล & การจัดการ</h2></div>
     <div class="settings-group">
+      <div class="set-row" id="rowStorage" style="cursor:default">
+        <div class="si">📱</div>
+        <div class="sc"><div class="st">จัดเก็บบนเครื่องนี้</div><div class="sd" id="storageStatus">ข้อมูลถูกเก็บในเครื่องคุณเท่านั้น (ออฟไลน์)</div></div>
+        <div class="sa" id="storageBadge" style="font-size:11px;font-weight:700"></div>
+      </div>
       <div class="set-row" id="rowExport">
         <div class="si">📤</div>
         <div class="sc"><div class="st">ส่งออกข้อมูล (ไฟล์ .json)</div><div class="sd">สำรองข้อมูล / นำไปแก้ไขต่อได้</div></div>
@@ -683,13 +688,17 @@
 "use strict";
 /* ============================================================
    Exercise Log — mobile PWA-style tracker
+   All data lives ON THE USER'S DEVICE (localStorage, no server).
    Data model (localStorage key: "exlog.v1"):
    {
-     profile: { name, exercises:[{id,name,target,image}] },
-     days: { "YYYY-MM-DD": { exercises:[{id,name,target,image,reps}] } }
+     profile: { name, exercises:[{id,name,target,setSize}] },
+     days: { "YYYY-MM-DD": { exercises:[{id,name,target,setSize,reps}] } },
+     images: { exerciseId: dataURL }   // stored ONCE per exercise, referenced by id
    }
    - profile = template for NEW days only.
    - each day snapshots its own exercises so history is immutable.
+   - reference images are kept in a separate map so they are never
+     duplicated into every day (keeps on-device storage small).
    ============================================================ */
 
 const STORE_KEY = "exlog.v1";
@@ -698,6 +707,7 @@ const RING_CIRC = 2 * Math.PI * 42;
 
 const uid = () => 'e' + Math.random().toString(36).slice(2, 9);
 const setSizeOf = e => (e && e.setSize > 0) ? e.setSize : SET_SIZE;
+const imgOf = id => (state.images && state.images[id]) || null;
 
 /* ---- date helpers (local, not UTC) ---- */
 function ymd(d){
@@ -733,9 +743,17 @@ function load(){
 }
 /* fill in fields added in later versions so old backups keep working */
 function migrate(p){
-  (p.profile.exercises||[]).forEach(e=>{ if(!(e.setSize>0)) e.setSize=SET_SIZE; });
+  if(!p.images) p.images={};
+  (p.profile.exercises||[]).forEach(e=>{
+    if(!(e.setSize>0)) e.setSize=SET_SIZE;
+    // hoist any inline dataURL image into the shared images map (once)
+    if(e.image){ if(!p.images[e.id]) p.images[e.id]=e.image; delete e.image; }
+  });
   Object.values(p.days||{}).forEach(day=>{
-    (day.exercises||[]).forEach(e=>{ if(!(e.setSize>0)) e.setSize=SET_SIZE; });
+    (day.exercises||[]).forEach(e=>{
+      if(!(e.setSize>0)) e.setSize=SET_SIZE;
+      if(e.image){ if(!p.images[e.id]) p.images[e.id]=e.image; delete e.image; }
+    });
   });
   return p;
 }
@@ -744,12 +762,13 @@ function seed(){
     profile:{
       name:"โปรแกรมของฉัน",
       exercises:[
-        {id:uid(),name:"วิดพื้น (Push-up)",target:100,setSize:10,image:null},
-        {id:uid(),name:"สควอท (Squat)",target:100,setSize:10,image:null},
-        {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,setSize:10,image:null},
+        {id:uid(),name:"วิดพื้น (Push-up)",target:100,setSize:10},
+        {id:uid(),name:"สควอท (Squat)",target:100,setSize:20},
+        {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,setSize:10},
       ]
     },
-    days:{}
+    days:{},
+    images:{}
   };
 }
 function save(){
@@ -759,13 +778,25 @@ function save(){
     toast("บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลอาจเต็ม (รูปใหญ่เกินไป?)");
   }
 }
+/* store/replace a reference image for an exercise id (once, shared across days) */
+function setImage(id, dataURL){
+  if(!state.images) state.images={};
+  if(dataURL) state.images[id]=dataURL; else delete state.images[id];
+}
+/* drop images no longer referenced by the profile or any saved day */
+function gcImages(){
+  if(!state.images) return;
+  const keep=new Set(state.profile.exercises.map(e=>e.id));
+  Object.values(state.days).forEach(d=>d.exercises.forEach(e=>keep.add(e.id)));
+  Object.keys(state.images).forEach(id=>{ if(!keep.has(id)) delete state.images[id]; });
+}
 
 /* Ensure a day exists; snapshot from profile the first time it's touched. */
 function ensureDay(date){
   if(!state.days[date]){
     state.days[date] = {
       exercises: state.profile.exercises.map(e=>({
-        id:e.id, name:e.name, target:e.target, setSize:setSizeOf(e), image:e.image||null, reps:0
+        id:e.id, name:e.name, target:e.target, setSize:setSizeOf(e), reps:0
       }))
     };
   }
@@ -775,7 +806,7 @@ function ensureDay(date){
 function viewDay(date){
   if(state.days[date]) return state.days[date];
   return { exercises: state.profile.exercises.map(e=>({
-    id:e.id, name:e.name, target:e.target, setSize:setSizeOf(e), image:e.image||null, reps:0
+    id:e.id, name:e.name, target:e.target, setSize:setSizeOf(e), reps:0
   })) };
 }
 
@@ -835,8 +866,9 @@ function renderToday(){
     for(let i=0;i<totalDots;i++){
       dots+=`<div class="dot ${i<filledDots?'filled':''}" data-act="setdot" data-id="${e.id}" data-n="${i+1}">${(i+1)*ss>tgt?tgt-(i*ss):ss}</div>`;
     }
-    const thumb = e.image
-      ? `<div class="thumb" data-act="view" data-id="${e.id}"><img src="${e.image}" alt=""/><div class="zoom">⛶</div></div>`
+    const eimg=imgOf(e.id);
+    const thumb = eimg
+      ? `<div class="thumb" data-act="view" data-id="${e.id}"><img src="${eimg}" alt=""/><div class="zoom">⛶</div></div>`
       : `<div class="thumb" data-act="view" data-id="${e.id}"><span class="ph">🏋️</span></div>`;
     return `<div class="ex-card ${done?'done':''}" id="card-${e.id}">
       <div class="ex-head">
@@ -898,14 +930,15 @@ function renderProfile(){
     return;
   }
   list.innerHTML=ex.map(e=>{
-    const thumb=e.image
-      ? `<div class="thumb" data-act="pview" data-id="${e.id}"><img src="${e.image}"/><div class="zoom">⛶</div></div>`
+    const pimg=imgOf(e.id);
+    const thumb=pimg
+      ? `<div class="thumb" data-act="pview" data-id="${e.id}"><img src="${pimg}"/><div class="zoom">⛶</div></div>`
       : `<div class="thumb"><span class="ph">🏋️</span></div>`;
     return `<div class="mgr-item">
       ${thumb}
       <div class="mi-info">
         <div class="mi-name">${escapeHtml(e.name)}</div>
-        <div class="mi-sub">เป้าหมาย ${e.target} ครั้ง · ${Math.max(1,Math.ceil(e.target/setSizeOf(e)))} เซ็ต × ${setSizeOf(e)} ${e.image?'· 🖼️':''}</div>
+        <div class="mi-sub">เป้าหมาย ${e.target} ครั้ง · ${Math.max(1,Math.ceil(e.target/setSizeOf(e)))} เซ็ต × ${setSizeOf(e)} ${pimg?'· 🖼️':''}</div>
       </div>
       <div class="mi-act">
         <button class="mini-btn" data-act="editp" data-id="${e.id}">✏️</button>
@@ -1040,7 +1073,7 @@ function openExerciseEditor(id){
   if(id){
     const e=state.profile.exercises.find(x=>x.id===id);
     document.getElementById('modalExTitle').textContent='แก้ไขท่า';
-    nameI.value=e.name; tgtI.value=e.target; setI.value=setSizeOf(e); pendingImg=e.image||null;
+    nameI.value=e.name; tgtI.value=e.target; setI.value=setSizeOf(e); pendingImg=imgOf(id);
   }else{
     document.getElementById('modalExTitle').textContent='เพิ่มท่าใหม่';
     nameI.value=''; tgtI.value=100; setI.value=10; pendingImg=null;
@@ -1074,12 +1107,15 @@ function saveExercise(){
   if(!name){toast('กรุณาใส่ชื่อท่า');return;}
   if(!ss||ss<1) ss=1;
   if(!tgt||tgt<1) tgt=ss;
+  let exId;
   if(editingId){
     const e=state.profile.exercises.find(x=>x.id===editingId);
-    e.name=name; e.target=tgt; e.setSize=ss; e.image=pendingImg;
+    e.name=name; e.target=tgt; e.setSize=ss; exId=editingId;
   }else{
-    state.profile.exercises.push({id:uid(),name,target:tgt,setSize:ss,image:pendingImg});
+    exId=uid();
+    state.profile.exercises.push({id:exId,name,target:tgt,setSize:ss});
   }
+  setImage(exId, pendingImg);
   save(); render();
   document.getElementById('modalExercise').classList.remove('active');
   toast(editingId?'บันทึกการแก้ไขแล้ว':'เพิ่มท่าใหม่แล้ว 💪', true);
@@ -1088,7 +1124,7 @@ function deleteProfileExercise(id){
   const e=state.profile.exercises.find(x=>x.id===id);
   askConfirm('ลบท่านี้?', `ต้องการลบ "${e?e.name:''}" ออกจากโปรไฟล์หรือไม่?\n(ข้อมูลในวันที่บันทึกไว้แล้วจะยังคงอยู่)`, ()=>{
     state.profile.exercises=state.profile.exercises.filter(x=>x.id!==id);
-    save(); render(); toast('ลบท่าแล้ว');
+    gcImages(); save(); render(); toast('ลบท่าแล้ว');
   });
 }
 
@@ -1100,7 +1136,7 @@ function applyProfileToToday(){
     const day=ensureDay(currentDate);
     const oldReps={}; day.exercises.forEach(e=>oldReps[e.id]=e.reps);
     day.exercises=state.profile.exercises.map(e=>({
-      id:e.id,name:e.name,target:e.target,setSize:setSizeOf(e),image:e.image||null,
+      id:e.id,name:e.name,target:e.target,setSize:setSizeOf(e),
       reps:Math.min(e.target, oldReps[e.id]||0)
     }));
     save(); render(); goTab('today'); toast('ซิงค์วันนี้กับโปรไฟล์แล้ว ✓', true);
@@ -1170,7 +1206,7 @@ function importData(file){
       const p=JSON.parse(ev.target.result);
       if(!p.profile||!p.days) throw 0;
       askConfirm('นำเข้าข้อมูล?','ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้ทั้งหมด ต้องการดำเนินการต่อหรือไม่?',()=>{
-        state=p; save(); render(); goTab('today'); toast('นำเข้าข้อมูลสำเร็จ ✓', true);
+        state=migrate(p); save(); render(); goTab('today'); toast('นำเข้าข้อมูลสำเร็จ ✓', true);
       });
     }catch(e){toast('ไฟล์ไม่ถูกต้อง — ต้องเป็นไฟล์ที่ส่งออกจากแอปนี้');}
   };
@@ -1221,7 +1257,7 @@ document.getElementById('exerciseList').addEventListener('click',e=>{
   else if(act==='setdot') setDot(id, parseInt(el.dataset.n,10));
   else if(act==='view'){
     const day=viewDay(currentDate);const ex=day.exercises.find(x=>x.id===id);
-    if(ex) openViewer(ex.name, ex.image, `เป้าหมาย ${ex.target} ครั้ง · ทำแล้ว ${ex.reps} ครั้ง`);
+    if(ex) openViewer(ex.name, imgOf(id), `เป้าหมาย ${ex.target} ครั้ง · ทำแล้ว ${ex.reps} ครั้ง`);
   }
 });
 
@@ -1237,7 +1273,7 @@ document.getElementById('profileList').addEventListener('click',e=>{
   const id=el.dataset.id, act=el.dataset.act;
   if(act==='editp') openExerciseEditor(id);
   else if(act==='delp') deleteProfileExercise(id);
-  else if(act==='pview'){const ex=state.profile.exercises.find(x=>x.id===id);if(ex)openViewer(ex.name,ex.image,`เป้าหมาย ${ex.target} ครั้ง`);}
+  else if(act==='pview'){const ex=state.profile.exercises.find(x=>x.id===id);if(ex)openViewer(ex.name,imgOf(id),`เป้าหมาย ${ex.target} ครั้ง`);}
 });
 
 document.getElementById('btnAddExercise').addEventListener('click',()=>openExerciseEditor(null));
@@ -1294,8 +1330,31 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
 }
 
+// Keep data on THIS device: ask the browser not to evict it, and show status.
+async function initStorage(){
+  const badge=document.getElementById('storageBadge');
+  const status=document.getElementById('storageStatus');
+  try{
+    if(navigator.storage && navigator.storage.persist){
+      let persisted = await navigator.storage.persisted();
+      if(!persisted) persisted = await navigator.storage.persist();
+      badge.textContent = persisted ? '🔒 ถาวร' : '';
+    }
+    if(navigator.storage && navigator.storage.estimate){
+      const {usage} = await navigator.storage.estimate();
+      if(usage!=null){
+        const kb=usage/1024;
+        const size = kb>1024 ? (kb/1024).toFixed(1)+' MB' : Math.max(1,Math.round(kb))+' KB';
+        status.textContent = `เก็บในเครื่องคุณเท่านั้น · ใช้พื้นที่ ${size}`;
+      }
+    }
+  }catch(e){}
+}
+initStorage();
+
 // go
 render();
+save(); // persist any auto-migration of older data on first open
 </script>
 </body>
 </html>
