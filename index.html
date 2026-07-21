@@ -99,11 +99,12 @@
 
   /* ===== Summary ring ===== */
   .summary{
-    display:flex;align-items:center;gap:16px;
+    display:flex;flex-direction:column;gap:14px;
     background:linear-gradient(135deg,var(--card),var(--card-2));
     border:1px solid var(--line);border-radius:var(--radius);
     padding:16px;margin-bottom:18px;box-shadow:var(--shadow);
   }
+  .summary-top{display:flex;align-items:center;gap:18px}
   .ring-wrap{position:relative;width:96px;height:96px;flex:none}
   .ring-wrap svg{transform:rotate(-90deg)}
   .ring-center{
@@ -113,7 +114,7 @@
   .ring-center .small{font-size:10px;color:var(--txt-dim);margin-top:2px}
   .summary .meta{flex:1;min-width:0}
   .summary .meta .lbl{font-size:12px;color:var(--txt-dim);font-weight:500}
-  .summary .meta .val{font-size:20px;font-weight:800;margin:2px 0 8px}
+  .summary .meta .val{font-size:22px;font-weight:800;margin:3px 0 0}
   .summary .meta .val b{color:var(--accent)}
   .mini-stats{display:flex;gap:8px}
   .mini{
@@ -537,30 +538,32 @@
     </div>
 
     <div class="summary" id="summaryBox">
-      <div class="ring-wrap">
-        <svg width="96" height="96" viewBox="0 0 96 96">
-          <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
-          <circle id="ringProg" cx="48" cy="48" r="42" fill="none" stroke="url(#grad)" stroke-width="9" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
-          <defs>
-            <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#6366f1"/>
-              <stop offset="1" stop-color="#22d3ee"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="ring-center">
-          <div class="big" id="ringPct">0%</div>
-          <div class="small">สำเร็จ</div>
+      <div class="summary-top">
+        <div class="ring-wrap">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+            <circle id="ringProg" cx="48" cy="48" r="42" fill="none" stroke="url(#grad)" stroke-width="9" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6366f1"/>
+                <stop offset="1" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center">
+            <div class="big" id="ringPct">0%</div>
+            <div class="small">สำเร็จ</div>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="lbl">รวมทั้งวัน</div>
+          <div class="val"><b id="totalReps">0</b> / <span id="totalTarget">0</span> ครั้ง</div>
         </div>
       </div>
-      <div class="meta">
-        <div class="lbl">รวมทั้งวัน</div>
-        <div class="val"><b id="totalReps">0</b> / <span id="totalTarget">0</span> ครั้ง</div>
-        <div class="mini-stats">
-          <div class="mini"><div class="n" id="statDone">0</div><div class="t">ท่าที่ครบ</div></div>
-          <div class="mini"><div class="n" id="statSets">0</div><div class="t">เซ็ต (×10)</div></div>
-          <div class="mini"><div class="n" id="statLeft">0</div><div class="t">เหลืออีก</div></div>
-        </div>
+      <div class="mini-stats">
+        <div class="mini"><div class="n" id="statDone">0</div><div class="t">ท่าที่ครบ</div></div>
+        <div class="mini"><div class="n" id="statSets">0</div><div class="t">เซ็ตรวม</div></div>
+        <div class="mini"><div class="n" id="statLeft">0</div><div class="t">เหลืออีก</div></div>
       </div>
     </div>
 
