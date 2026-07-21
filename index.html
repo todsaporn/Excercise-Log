@@ -77,6 +77,13 @@
     transition:.15s;
   }
   .icon-btn:active{transform:scale(.92);background:var(--card-2)}
+  .top-actions{display:flex;align-items:center;gap:8px;flex:none}
+  .timer-toggle{width:38px;height:38px;font-size:16px;border-radius:12px}
+  .timer-toggle.on{
+    border-color:rgba(34,211,238,.5);
+    background:linear-gradient(135deg,rgba(34,211,238,.22),rgba(59,130,246,.16));
+    box-shadow:0 0 0 3px rgba(34,211,238,.1);
+  }
 
   /* ===== Date bar ===== */
   .datebar{
@@ -108,10 +115,12 @@
   .ring-wrap{position:relative;width:88px;height:88px;flex:none}
   .ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
   .ring-center{
-    position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;line-height:1;
+    transform:translateY(3px);
   }
-  .ring-center .big{font-size:22px;font-weight:800;line-height:1}
-  .ring-center .small{font-size:10px;color:var(--txt-dim);margin-top:2px}
+  .ring-center .big{font-size:19px;font-weight:800;line-height:1}
+  .ring-center .small{font-size:9px;color:var(--txt-dim);margin-top:3px;letter-spacing:.2px}
   .summary .meta{flex:1;min-width:0}
   .summary .meta .lbl{font-size:12px;color:var(--txt-dim);font-weight:500}
   .summary .meta .val{font-size:21px;font-weight:800;margin:4px 0 0;color:var(--txt-dim);white-space:nowrap}
@@ -126,15 +135,18 @@
 
   /* ===== Rest timer ===== */
   .timer-card{
-    background:linear-gradient(135deg,var(--card),var(--card-2));
-    border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px 16px;margin-bottom:18px;box-shadow:var(--shadow);
-    transition:border-color .2s;
+    background:
+      linear-gradient(140deg, rgba(34,211,238,.14), rgba(59,130,246,.05) 55%, rgba(15,23,42,0)),
+      #0c1a2b;
+    border:1px solid rgba(34,211,238,.3);border-radius:var(--radius);
+    padding:14px 16px 16px;margin-bottom:18px;
+    box-shadow:0 14px 40px -16px rgba(34,211,238,.35);
+    transition:border-color .2s, box-shadow .2s;
   }
-  .timer-card.running{border-color:rgba(34,211,238,.4)}
-  .timer-card.done{border-color:rgba(52,211,153,.55)}
+  .timer-card.running{border-color:rgba(34,211,238,.65);box-shadow:0 14px 40px -14px rgba(34,211,238,.5)}
+  .timer-card.done{border-color:rgba(52,211,153,.6)}
   .timer-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .timer-label{font-size:12.5px;font-weight:700;color:var(--txt-dim);letter-spacing:.3px}
+  .timer-label{font-size:12.5px;font-weight:800;color:#67e8f9;letter-spacing:.4px}
   .timer-presets{display:flex;gap:6px}
   .tpreset{
     border:1px solid var(--line);background:var(--card);color:var(--txt-dim);
@@ -142,7 +154,7 @@
     cursor:pointer;transition:.12s;
   }
   .tpreset:active{transform:scale(.9)}
-  .tpreset.sel{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;border-color:transparent}
+  .tpreset.sel{background:linear-gradient(135deg,#22d3ee,#3b82f6);color:#04141d;border-color:transparent}
   .timer-display{
     font-size:50px;font-weight:800;text-align:center;letter-spacing:1px;
     font-variant-numeric:tabular-nums;line-height:1.05;margin:8px 0 13px;color:var(--txt);
@@ -159,11 +171,11 @@
   .timer-row .treset{width:54px;font-size:20px;color:var(--txt-dim)}
   .tstart{
     flex:1;padding:14px;border:none;border-radius:13px;font-family:inherit;
-    font-weight:800;font-size:16px;color:#fff;cursor:pointer;transition:.12s;
-    background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 8px 20px -8px var(--ring);
+    font-weight:800;font-size:16px;color:#04141d;cursor:pointer;transition:.12s;
+    background:linear-gradient(135deg,#22d3ee,#3b82f6);box-shadow:0 8px 20px -8px rgba(34,211,238,.5);
   }
   .tstart:active{transform:scale(.96)}
-  .timer-card.running .tstart{background:linear-gradient(135deg,#f59e0b,#f43f5e);box-shadow:0 8px 20px -8px rgba(244,63,94,.4)}
+  .timer-card.running .tstart{color:#fff;background:linear-gradient(135deg,#f59e0b,#f43f5e);box-shadow:0 8px 20px -8px rgba(244,63,94,.4)}
 
   /* ===== Section title ===== */
   .sec-title{
@@ -564,7 +576,10 @@
         <p id="profileNameLabel">ตัวติดตามออกกำลังกาย</p>
       </div>
     </div>
-    <button class="avatar-btn" id="btnSwitchUser" title="สลับโปรไฟล์"><span id="headerAvatar"></span></button>
+    <div class="top-actions">
+      <button class="icon-btn timer-toggle" id="btnTimerToggle" title="แสดง/ซ่อน ตัวจับเวลา">⏱️</button>
+      <button class="avatar-btn" id="btnSwitchUser" title="สลับโปรไฟล์"><span id="headerAvatar"></span></button>
+    </div>
   </header>
 
   <!-- ======== TODAY VIEW ======== -->
@@ -611,7 +626,7 @@
     <!-- Rest timer -->
     <div class="timer-card" id="timerCard">
       <div class="timer-top">
-        <span class="timer-label">⏱️ จับเวลาพัก</span>
+        <span class="timer-label">⏱️ จับเวลา</span>
         <div class="timer-presets" id="timerPresets">
           <button class="tpreset" data-sec="30">0:30</button>
           <button class="tpreset" data-sec="60">1:00</button>
@@ -863,7 +878,7 @@
    ============================================================ */
 
 const STORE_KEY = "exlog.v1";
-const APP_VERSION = "2026.07.21.3"; // bump on each deploy so users can confirm the update landed
+const APP_VERSION = "2026.07.21.4"; // bump on each deploy so users can confirm the update landed
 const SET_SIZE = 10;               // default set size for new exercises
 const RING_CIRC = 2 * Math.PI * 42;
 
@@ -1561,7 +1576,7 @@ function timerDone(){
   const card=document.getElementById('timerCard');
   card.classList.remove('running'); card.classList.add('done');
   document.getElementById('btnTimerStart').textContent='▶ เริ่ม';
-  toast('⏰ หมดเวลาพัก! ลุยเซ็ตต่อไป 💪', true);
+  toast('⏰ หมดเวลาแล้ว! 💪', true);
   if(navigator.vibrate) navigator.vibrate([120,60,120,60,220]);
   beep();
   tRemain=tDur;
@@ -1686,6 +1701,21 @@ document.getElementById('rowReset').addEventListener('click',()=>{
   document.getElementById(idm).addEventListener('click',e=>{if(e.target.id===idm)document.getElementById(idm).classList.remove('active');});
 });
 
+// timer show/hide toggle (remembered on this device)
+let timerShown = (localStorage.getItem('exlog.timer') !== '0'); // default shown
+function applyTimerVis(){
+  document.getElementById('timerCard').style.display = timerShown ? '' : 'none';
+  document.getElementById('btnTimerToggle').classList.toggle('on', timerShown);
+}
+function toggleTimer(){
+  timerShown = !timerShown;
+  localStorage.setItem('exlog.timer', timerShown ? '1' : '0');
+  applyTimerVis();
+  if(timerShown) tRender();
+  toast(timerShown ? 'แสดงตัวจับเวลาแล้ว' : 'ซ่อนตัวจับเวลาแล้ว', timerShown);
+}
+document.getElementById('btnTimerToggle').addEventListener('click',toggleTimer);
+
 // rest timer
 document.getElementById('btnTimerStart').addEventListener('click',tStart);
 document.getElementById('btnTimerReset').addEventListener('click',tReset);
@@ -1694,6 +1724,7 @@ document.getElementById('timerCard').addEventListener('click',e=>{
   const pre=e.target.closest('.tpreset'); if(pre){ tSetPreset(parseInt(pre.dataset.sec,10)); }
 });
 tRender();
+applyTimerVis();
 
 // stats range selector
 document.getElementById('rangeSeg').addEventListener('click',e=>{

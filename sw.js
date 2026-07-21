@@ -1,6 +1,6 @@
 /* Exercise Log service worker — offline app shell cache.
    Bump CACHE when any shell file changes so clients update. */
-const CACHE = 'exlog-shell-v4';
+const CACHE = 'exlog-shell-v5';
 const ASSETS = [
   './',
   './index.html',
