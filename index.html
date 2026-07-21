@@ -655,6 +655,11 @@
         <div class="sc"><div class="st">นำเข้าข้อมูล</div><div class="sd">กู้คืนจากไฟล์ที่สำรองไว้</div></div>
         <div class="sa">›</div>
       </div>
+      <div class="set-row" id="rowUpdate">
+        <div class="si">🔄</div>
+        <div class="sc"><div class="st">ตรวจหาอัปเดต / รีเฟรช</div><div class="sd">โหลดเวอร์ชันล่าสุด (ข้อมูลไม่หาย)</div></div>
+        <div class="sa">›</div>
+      </div>
       <div class="set-row" id="rowReset">
         <div class="si">🗑️</div>
         <div class="sc"><div class="st" style="color:var(--danger)">ล้างข้อมูลทั้งหมด</div><div class="sd">ลบทุกอย่างและเริ่มใหม่</div></div>
@@ -662,7 +667,7 @@
       </div>
     </div>
     <p style="text-align:center;color:var(--txt-faint);font-size:11px;margin-top:20px">
-      ข้อมูลถูกเก็บไว้ในเครื่องของคุณเอง (บนเบราว์เซอร์)<br/>Exercise Log · เก็บทุกครั้งที่ขยับ 💪
+      ข้อมูลถูกเก็บไว้ในเครื่องของคุณเอง (บนเบราว์เซอร์)<br/>Exercise Log · เวอร์ชัน <span id="appVer">—</span> · เก็บทุกครั้งที่ขยับ 💪
     </p>
   </section>
 
@@ -798,6 +803,7 @@
    ============================================================ */
 
 const STORE_KEY = "exlog.v1";
+const APP_VERSION = "2026.07.21.1"; // bump on each deploy so users can confirm the update landed
 const SET_SIZE = 10;               // default set size for new exercises
 const RING_CIRC = 2 * Math.PI * 42;
 
@@ -1541,6 +1547,7 @@ document.getElementById('viewerClose').addEventListener('click',()=>document.get
 document.getElementById('imgViewer').addEventListener('click',e=>{if(e.target.id==='imgViewer')document.getElementById('imgViewer').classList.remove('active');});
 
 // data management
+document.getElementById('rowUpdate').addEventListener('click',checkUpdate);
 document.getElementById('rowExport').addEventListener('click',exportData);
 document.getElementById('rowImport').addEventListener('click',()=>document.getElementById('fileImport').click());
 document.getElementById('fileImport').addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value='';});
@@ -1563,9 +1570,40 @@ document.getElementById('rangeSeg').addEventListener('click',e=>{
   renderStats();
 });
 
-// PWA service worker (offline / add-to-home-screen)
+// PWA service worker (offline / add-to-home-screen) + auto-update
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading=false;
+  // when a new service worker takes control, reload once to show the new version
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!hadController || reloading) return; // skip the very first install
+    reloading=true; location.reload();
+  });
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.update();
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(!nw) return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed' && navigator.serviceWorker.controller){
+            toast('พบเวอร์ชันใหม่ กำลังอัปเดต… ✨', true);
+          }
+        });
+      });
+    }).catch(()=>{});
+  });
+}
+// manual "check for updates / refresh"
+async function checkUpdate(){
+  toast('กำลังตรวจหาอัปเดต…');
+  try{
+    if('serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(reg) await reg.update();
+    }
+  }catch(e){}
+  setTimeout(()=>location.reload(), 700); // navigation is network-first, so this pulls the latest
 }
 
 // Keep data on THIS device: ask the browser not to evict it, and show status.
@@ -1591,6 +1629,7 @@ async function initStorage(){
 initStorage();
 
 // go
+document.getElementById('appVer').textContent = APP_VERSION;
 render();
 save(); // persist any auto-migration of older data on first open
 if(root.users.length>1) openUserPicker(); // Netflix-style: choose who's training
