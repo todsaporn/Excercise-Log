@@ -435,6 +435,65 @@
     background:rgba(21,31,56,.8);color:#fff;font-size:20px;cursor:pointer;
   }
 
+  /* ===== Avatar / user profiles ===== */
+  .avatar-btn{
+    width:42px;height:42px;flex:none;border:2px solid var(--line);
+    border-radius:13px;padding:0;cursor:pointer;overflow:hidden;background:none;
+    transition:.15s;
+  }
+  .avatar-btn:active{transform:scale(.92)}
+  .avatar-btn span,.av{
+    width:100%;height:100%;display:grid;place-items:center;font-size:20px;line-height:1;
+  }
+  .av{border-radius:inherit}
+
+  .userpicker{
+    position:fixed;inset:0;z-index:70;display:none;
+    background:
+      radial-gradient(900px 500px at 50% 0%, rgba(99,102,241,.18), transparent 60%),
+      rgba(6,10,24,.97);
+    backdrop-filter:blur(8px);
+    align-items:center;justify-content:center;padding:24px;animation:fade .25s ease;
+  }
+  .userpicker.active{display:flex}
+  #modalUser{z-index:78}   /* sit above the user picker (70) when adding/editing */
+  #modalConfirm{z-index:88} /* confirm dialog is always topmost (above any modal) */
+  .up-inner{width:100%;max-width:460px;text-align:center}
+  .up-title{font-size:24px;font-weight:800;margin-bottom:28px;letter-spacing:.3px}
+  .up-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:16px 14px;
+    justify-items:center;margin-bottom:28px;
+  }
+  @media(max-width:360px){.up-grid{grid-template-columns:repeat(2,1fr)}}
+  .up-tile{background:none;border:none;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:9px;transition:.15s;position:relative;padding:0}
+  .up-tile:active{transform:scale(.94)}
+  .up-av{
+    width:84px;height:84px;border-radius:20px;display:grid;place-items:center;
+    font-size:40px;line-height:1;border:2px solid transparent;transition:.15s;
+    box-shadow:0 10px 26px -10px rgba(0,0,0,.6);
+  }
+  .up-tile:hover .up-av,.up-tile.current .up-av{border-color:#fff}
+  .up-name{font-size:13.5px;font-weight:600;color:var(--txt-dim);max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .up-tile.current .up-name{color:#fff}
+  .up-badge{position:absolute;top:-4px;right:8px;font-size:15px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));display:none}
+  .userpicker.managing .up-badge{display:block}
+  .up-add .up-av{background:var(--card);border:2px dashed var(--line);color:var(--txt-dim);font-size:34px}
+  .up-manage{
+    background:none;border:1px solid var(--line);color:var(--txt-dim);
+    font-family:inherit;font-weight:700;font-size:13px;letter-spacing:1px;
+    padding:11px 22px;border-radius:12px;cursor:pointer;transition:.15s;text-transform:uppercase;
+  }
+  .up-manage:active{transform:scale(.96)}
+  .userpicker.managing .up-manage{background:#fff;color:#0b1120;border-color:#fff}
+
+  .avatar-preview{width:76px;height:76px;border-radius:18px;display:grid;place-items:center;font-size:38px;margin:0 auto 16px;box-shadow:var(--shadow)}
+  .swatch-label{font-size:11px;color:var(--txt-faint);font-weight:600;margin:4px 0 8px}
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .sw{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;cursor:pointer;border:2px solid transparent;background:var(--card);transition:.12s}
+  .sw.color{font-size:0}
+  .sw.sel{border-color:#fff;transform:scale(1.06)}
+  .sw:active{transform:scale(.9)}
+
   /* Toast */
   .toast{
     position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
@@ -463,7 +522,7 @@
         <p id="profileNameLabel">ตัวติดตามออกกำลังกาย</p>
       </div>
     </div>
-    <button class="icon-btn" id="btnHeaderSettings" title="ตั้งค่า">⚙️</button>
+    <button class="avatar-btn" id="btnSwitchUser" title="สลับโปรไฟล์"><span id="headerAvatar"></span></button>
   </header>
 
   <!-- ======== TODAY VIEW ======== -->
@@ -566,11 +625,11 @@
   <!-- ======== PROFILE VIEW ======== -->
   <section class="view" id="view-profile">
     <div class="note-box">
-      🧩 <b>โปรไฟล์</b> คือชุดท่าออกกำลังกายมาตรฐานของคุณ การแก้ไขที่นี่จะมีผลกับ<b>ข้อมูลใหม่</b>เท่านั้น — วันที่บันทึกไปแล้วจะถูกเก็บไว้ตามเดิมไม่เปลี่ยนแปลง
+      🧩 <b>ท่าประจำ</b> คือชุดท่าออกกำลังกายมาตรฐานของโปรไฟล์นี้ การแก้ไขที่นี่จะมีผลกับ<b>ข้อมูลใหม่</b>เท่านั้น — วันที่บันทึกไปแล้วจะถูกเก็บไว้ตามเดิมไม่เปลี่ยนแปลง
     </div>
 
     <div class="sec-title">
-      <h2>ท่าในโปรไฟล์</h2>
+      <h2>ท่าประจำของฉัน</h2>
       <span class="link" id="linkApplyToday">ใช้กับวันนี้</span>
     </div>
     <div id="profileList"></div>
@@ -610,7 +669,7 @@
       <button class="tab active" data-tab="today"><span class="ti">🏠</span>วันนี้</button>
       <button class="tab" data-tab="stats"><span class="ti">📊</span>สถิติ</button>
       <button class="tab" data-tab="history"><span class="ti">📅</span>ประวัติ</button>
-      <button class="tab" data-tab="profile"><span class="ti">🧩</span>โปรไฟล์</button>
+      <button class="tab" data-tab="profile"><span class="ti">🧩</span>ท่าประจำ</button>
     </div>
   </nav>
 </div>
@@ -680,6 +739,40 @@
   <div class="vsub" id="viewerSub"></div>
 </div>
 
+<!-- User (sub-profile) picker — Netflix style -->
+<div class="userpicker" id="userPicker">
+  <div class="up-inner">
+    <div class="up-title">ใครกำลังออกกำลังกาย?</div>
+    <div class="up-grid" id="userGrid"></div>
+    <button class="up-manage" id="btnManageUsers">จัดการโปรไฟล์</button>
+  </div>
+</div>
+
+<!-- User editor modal -->
+<div class="modal-bg" id="modalUser">
+  <div class="modal">
+    <div class="grip"></div>
+    <h3 id="modalUserTitle">เพิ่มโปรไฟล์</h3>
+    <div class="field">
+      <label>ชื่อโปรไฟล์</label>
+      <input type="text" id="inpUserName" placeholder="เช่น ต้น, คุณแม่, โปรแกรมลดพุง" maxlength="24"/>
+    </div>
+    <div class="field">
+      <label>รูปประจำตัว</label>
+      <div class="avatar-preview" id="avatarPreview"></div>
+      <div class="swatch-label">อิโมจิ</div>
+      <div class="swatches" id="emojiSwatches"></div>
+      <div class="swatch-label">สี</div>
+      <div class="swatches" id="colorSwatches"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnUserDelete" style="color:var(--danger);display:none">ลบ</button>
+      <button class="btn-ghost" id="btnUserCancel">ยกเลิก</button>
+      <button class="btn-primary" id="btnUserSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" accept="image/*" class="file-in" id="fileImg"/>
 <input type="file" accept="application/json,.json" class="file-in" id="fileImport"/>
 <div class="toast" id="toast"></div>
@@ -727,53 +820,85 @@ function fmtDateShort(s){
   return `${d.getDate()} ${TH_MON[d.getMonth()]} ${d.getFullYear()+543}`;
 }
 
-/* ---- state ---- */
-let state = load();
+/* ---- state ----
+   root  = the whole on-device store, holding multiple sub-profiles (users)
+   state = the ACTIVE user's data (profile/days/images). All existing code
+           keeps working against `state` unchanged; switching users just
+           repoints `state` at another user's data. */
+const AVATAR_EMOJIS=['💪','🏃','🧘','🚴','🏋️','🥊','🤸','🏊','⚽','🏀','🎾','🐯','🦊','🐻','🐼','🦁','🌟','🔥','🍎','🥦'];
+const AVATAR_COLORS=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f59e0b','#22c55e','#10b981','#06b6d4','#3b82f6','#64748b'];
+
+let root = loadRoot();
+let state = activeData();
 let currentDate = TODAY;
 let editingId = null;      // exercise id being edited, or null for new
-let pendingImg = null;     // dataURL held in editor
+let pendingImg = null;     // dataURL held in exercise editor
 let confirmCb = null;
+let editingUserId = null;  // user id being edited, or null for new
+let pendingAvatar = null;  // {emoji,color} held in the user editor
 
-function load(){
-  try{
-    const raw = localStorage.getItem(STORE_KEY);
-    if(raw){ const p=JSON.parse(raw); if(p && p.profile && p.days) return migrate(p); }
-  }catch(e){}
-  return seed();
+function randomAvatar(){
+  return { emoji:AVATAR_EMOJIS[Math.floor(Math.random()*AVATAR_EMOJIS.length)],
+           color:AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)] };
 }
-/* fill in fields added in later versions so old backups keep working */
-function migrate(p){
-  if(!p.images) p.images={};
-  (p.profile.exercises||[]).forEach(e=>{
-    if(!(e.setSize>0)) e.setSize=SET_SIZE;
-    // hoist any inline dataURL image into the shared images map (once)
-    if(e.image){ if(!p.images[e.id]) p.images[e.id]=e.image; delete e.image; }
-  });
-  Object.values(p.days||{}).forEach(day=>{
-    (day.exercises||[]).forEach(e=>{
-      if(!(e.setSize>0)) e.setSize=SET_SIZE;
-      if(e.image){ if(!p.images[e.id]) p.images[e.id]=e.image; delete e.image; }
-    });
-  });
-  return p;
-}
-function seed(){
+function seedData(){
   return {
-    profile:{
-      name:"โปรแกรมของฉัน",
-      exercises:[
-        {id:uid(),name:"วิดพื้น (Push-up)",target:100,setSize:10},
-        {id:uid(),name:"สควอท (Squat)",target:100,setSize:20},
-        {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,setSize:10},
-      ]
-    },
-    days:{},
-    images:{}
+    profile:{ name:"โปรแกรมของฉัน", exercises:[
+      {id:uid(),name:"วิดพื้น (Push-up)",target:100,setSize:10},
+      {id:uid(),name:"สควอท (Squat)",target:100,setSize:20},
+      {id:uid(),name:"ซิทอัพ (Sit-up)",target:100,setSize:10},
+    ]},
+    days:{}, images:{}
   };
 }
+function newUser(name,avatar){ return { id:'u'+uid(), name:name||'โปรไฟล์', avatar:avatar||randomAvatar(), data:seedData() }; }
+function seedRoot(){ const u=newUser('ฉัน'); return { version:2, activeUser:u.id, users:[u] }; }
+
+/* fill in fields added in later versions so old backups keep working */
+function migrateData(d){
+  if(!d.profile) d.profile={name:"โปรแกรมของฉัน",exercises:[]};
+  if(!d.days) d.days={};
+  if(!d.images) d.images={};
+  (d.profile.exercises||[]).forEach(e=>{
+    if(!(e.setSize>0)) e.setSize=SET_SIZE;
+    if(e.image){ if(!d.images[e.id]) d.images[e.id]=e.image; delete e.image; }
+  });
+  Object.values(d.days).forEach(day=>{
+    (day.exercises||[]).forEach(e=>{
+      if(!(e.setSize>0)) e.setSize=SET_SIZE;
+      if(e.image){ if(!d.images[e.id]) d.images[e.id]=e.image; delete e.image; }
+    });
+  });
+  return d;
+}
+/* normalise any stored shape into the multi-user container */
+function toRoot(p){
+  if(p && Array.isArray(p.users)){
+    p.users.forEach(u=>{ if(!u.id) u.id='u'+uid(); if(!u.name) u.name='โปรไฟล์'; if(!u.avatar) u.avatar=randomAvatar(); migrateData(u.data||(u.data={})); });
+    if(!p.users.length) p.users.push(newUser('ฉัน'));
+    if(!p.activeUser || !p.users.some(u=>u.id===p.activeUser)) p.activeUser=p.users[0].id;
+    p.version=2;
+    return p;
+  }
+  if(p && p.profile && p.days){ // legacy single-store → wrap as the first user
+    const u={id:'u'+uid(), name:'ฉัน', avatar:randomAvatar(), data:migrateData(p)};
+    return { version:2, activeUser:u.id, users:[u] };
+  }
+  return null;
+}
+function loadRoot(){
+  try{
+    const raw=localStorage.getItem(STORE_KEY);
+    if(raw){ const r=toRoot(JSON.parse(raw)); if(r) return r; }
+  }catch(e){}
+  return seedRoot();
+}
+function activeUser(){ const u=root.users.find(x=>x.id===root.activeUser)||root.users[0]; root.activeUser=u.id; return u; }
+function activeData(){ return activeUser().data; }
+
 function save(){
   try{
-    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORE_KEY, JSON.stringify(root));
   }catch(e){
     toast("บันทึกไม่สำเร็จ — พื้นที่เก็บข้อมูลอาจเต็ม (รูปใหญ่เกินไป?)");
   }
@@ -811,12 +936,104 @@ function viewDay(date){
 }
 
 /* =================== RENDER =================== */
+function shade(hex,p){ // p<0 darker, p>0 lighter
+  const n=parseInt(hex.slice(1),16); let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  const f=t=>Math.round(t+(p<0? t*p : (255-t)*p));
+  r=Math.max(0,Math.min(255,f(r)));g=Math.max(0,Math.min(255,f(g)));b=Math.max(0,Math.min(255,f(b)));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function avatarBg(av){ const c=(av&&av.color)||'#6366f1'; return `linear-gradient(135deg, ${shade(c,.18)}, ${shade(c,-.28)})`; }
+
 function render(){
-  document.getElementById('profileNameLabel').textContent = state.profile.name || "ตัวติดตามออกกำลังกาย";
+  const u=activeUser();
+  document.getElementById('profileNameLabel').textContent = 'สวัสดี, '+u.name;
+  const hb=document.getElementById('btnSwitchUser');
+  hb.style.background=avatarBg(u.avatar);
+  document.getElementById('headerAvatar').textContent=u.avatar.emoji;
   renderToday();
   renderStats();
   renderHistory();
   renderProfile();
+}
+
+/* =================== SUB-PROFILES (users) =================== */
+function openUserPicker(){
+  renderUserPicker();
+  const up=document.getElementById('userPicker');
+  up.classList.remove('managing');
+  document.getElementById('btnManageUsers').textContent='จัดการโปรไฟล์';
+  up.classList.add('active');
+}
+function closeUserPicker(){ document.getElementById('userPicker').classList.remove('active','managing'); }
+function renderUserPicker(){
+  const grid=document.getElementById('userGrid');
+  grid.innerHTML = root.users.map(u=>`
+    <button class="up-tile ${u.id===root.activeUser?'current':''}" data-uid="${u.id}">
+      <div class="up-badge">✏️</div>
+      <div class="up-av" style="background:${avatarBg(u.avatar)}">${u.avatar.emoji}</div>
+      <div class="up-name">${escapeHtml(u.name)}</div>
+    </button>`).join('') +
+    `<button class="up-tile up-add" id="upAdd"><div class="up-av">＋</div><div class="up-name">เพิ่มโปรไฟล์</div></button>`;
+}
+function switchUser(id){
+  if(!root.users.some(u=>u.id===id)) return;
+  root.activeUser=id; state=activeData(); currentDate=TODAY; save();
+  closeUserPicker(); goTab('today'); render();
+  toast('สวัสดี '+activeUser().name+' 👋', true);
+}
+function openUserEditor(id){
+  editingUserId=id||null;
+  const del=document.getElementById('btnUserDelete');
+  if(id){
+    const u=root.users.find(x=>x.id===id);
+    document.getElementById('modalUserTitle').textContent='แก้ไขโปรไฟล์';
+    document.getElementById('inpUserName').value=u.name;
+    pendingAvatar={...u.avatar};
+    del.style.display = root.users.length>1 ? 'inline-block' : 'none';
+  }else{
+    document.getElementById('modalUserTitle').textContent='เพิ่มโปรไฟล์';
+    document.getElementById('inpUserName').value='';
+    pendingAvatar=randomAvatar();
+    del.style.display='none';
+  }
+  renderAvatarSwatches();
+  document.getElementById('modalUser').classList.add('active');
+  setTimeout(()=>document.getElementById('inpUserName').focus(),300);
+}
+function renderAvatarSwatches(){
+  const pv=document.getElementById('avatarPreview');
+  pv.style.background=avatarBg(pendingAvatar);
+  pv.textContent=pendingAvatar.emoji;
+  document.getElementById('emojiSwatches').innerHTML=
+    AVATAR_EMOJIS.map(em=>`<div class="sw ${em===pendingAvatar.emoji?'sel':''}" data-emoji="${em}">${em}</div>`).join('');
+  document.getElementById('colorSwatches').innerHTML=
+    AVATAR_COLORS.map(c=>`<div class="sw color ${c===pendingAvatar.color?'sel':''}" data-color="${c}" style="background:${c}"></div>`).join('');
+}
+function saveUser(){
+  const name=document.getElementById('inpUserName').value.trim()||'โปรไฟล์';
+  const isNew=!editingUserId;
+  if(isNew){
+    const u={id:'u'+uid(),name,avatar:{...pendingAvatar},data:seedData()};
+    root.users.push(u); root.activeUser=u.id; state=activeData(); currentDate=TODAY;
+  }else{
+    const u=root.users.find(x=>x.id===editingUserId); u.name=name; u.avatar={...pendingAvatar};
+  }
+  save();
+  document.getElementById('modalUser').classList.remove('active');
+  renderUserPicker(); render();
+  if(isNew){ closeUserPicker(); goTab('today'); toast('สร้างโปรไฟล์ '+name+' แล้ว 🎉', true); }
+  else toast('บันทึกโปรไฟล์แล้ว', true);
+}
+function deleteUser(id){
+  if(root.users.length<=1){ toast('ต้องเหลืออย่างน้อย 1 โปรไฟล์'); return; }
+  const u=root.users.find(x=>x.id===id); if(!u) return;
+  askConfirm('ลบโปรไฟล์นี้?', `ลบ "${u.name}" พร้อมข้อมูลทั้งหมด (ท่า/ประวัติ/สถิติ/รูป) อย่างถาวร ไม่สามารถกู้คืนได้`, ()=>{
+    root.users=root.users.filter(x=>x.id!==id);
+    if(root.activeUser===id){ root.activeUser=root.users[0].id; state=activeData(); currentDate=TODAY; }
+    save();
+    document.getElementById('modalUser').classList.remove('active');
+    renderUserPicker(); render(); toast('ลบโปรไฟล์แล้ว');
+  });
 }
 
 function renderToday(){
@@ -1190,11 +1407,11 @@ function askConfirm(title,msg,cb,danger=true){
 
 /* =================== IMPORT / EXPORT =================== */
 function exportData(){
-  const data=JSON.stringify(state,null,2);
+  const data=JSON.stringify(root,null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download=`exercise-log-${TODAY}.json`;
+  a.href=url; a.download=`exercise-log-backup-${TODAY}.json`;
   document.body.appendChild(a);a.click();a.remove();
   URL.revokeObjectURL(url);
   toast('ส่งออกไฟล์แล้ว 📤', true);
@@ -1203,10 +1420,10 @@ function importData(file){
   const r=new FileReader();
   r.onload=ev=>{
     try{
-      const p=JSON.parse(ev.target.result);
-      if(!p.profile||!p.days) throw 0;
-      askConfirm('นำเข้าข้อมูล?','ข้อมูลปัจจุบันจะถูกแทนที่ด้วยไฟล์นี้ทั้งหมด ต้องการดำเนินการต่อหรือไม่?',()=>{
-        state=migrate(p); save(); render(); goTab('today'); toast('นำเข้าข้อมูลสำเร็จ ✓', true);
+      const r=toRoot(JSON.parse(ev.target.result));
+      if(!r) throw 0;
+      askConfirm('นำเข้าข้อมูล?','ข้อมูลปัจจุบันทั้งหมด (ทุกโปรไฟล์) จะถูกแทนที่ด้วยไฟล์นี้ ต้องการดำเนินการต่อหรือไม่?',()=>{
+        root=r; state=activeData(); currentDate=TODAY; save(); render(); goTab('today'); toast('นำเข้าข้อมูลสำเร็จ ✓', true);
       });
     }catch(e){toast('ไฟล์ไม่ถูกต้อง — ต้องเป็นไฟล์ที่ส่งออกจากแอปนี้');}
   };
@@ -1236,8 +1453,26 @@ function toast(msg,good){
 /* =================== EVENT WIRING =================== */
 // tabs
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>goTab(t.dataset.tab)));
-document.getElementById('btnHeaderSettings').addEventListener('click',()=>goTab('profile'));
 document.getElementById('linkEditProfile').addEventListener('click',()=>goTab('profile'));
+
+// sub-profile (user) switching
+document.getElementById('btnSwitchUser').addEventListener('click',openUserPicker);
+document.getElementById('userGrid').addEventListener('click',e=>{
+  if(e.target.closest('#upAdd')){ openUserEditor(null); return; }
+  const tile=e.target.closest('.up-tile'); if(!tile||!tile.dataset.uid) return;
+  if(document.getElementById('userPicker').classList.contains('managing')) openUserEditor(tile.dataset.uid);
+  else switchUser(tile.dataset.uid);
+});
+document.getElementById('btnManageUsers').addEventListener('click',()=>{
+  const up=document.getElementById('userPicker');
+  const m=up.classList.toggle('managing');
+  document.getElementById('btnManageUsers').textContent = m?'เสร็จสิ้น':'จัดการโปรไฟล์';
+});
+document.getElementById('btnUserSave').addEventListener('click',saveUser);
+document.getElementById('btnUserCancel').addEventListener('click',()=>document.getElementById('modalUser').classList.remove('active'));
+document.getElementById('btnUserDelete').addEventListener('click',()=>{ if(editingUserId) deleteUser(editingUserId); });
+document.getElementById('emojiSwatches').addEventListener('click',e=>{const s=e.target.closest('[data-emoji]');if(!s)return;pendingAvatar.emoji=s.dataset.emoji;renderAvatarSwatches();});
+document.getElementById('colorSwatches').addEventListener('click',e=>{const s=e.target.closest('[data-color]');if(!s)return;pendingAvatar.color=s.dataset.color;renderAvatarSwatches();});
 
 // date nav
 document.getElementById('datePrev').addEventListener('click',()=>{
@@ -1307,13 +1542,13 @@ document.getElementById('rowExport').addEventListener('click',exportData);
 document.getElementById('rowImport').addEventListener('click',()=>document.getElementById('fileImport').click());
 document.getElementById('fileImport').addEventListener('change',e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value='';});
 document.getElementById('rowReset').addEventListener('click',()=>{
-  askConfirm('ล้างข้อมูลทั้งหมด?','การกระทำนี้จะลบโปรไฟล์และประวัติทั้งหมดอย่างถาวร ไม่สามารถกู้คืนได้ (แนะนำให้ส่งออกไฟล์ไว้ก่อน)',()=>{
-    state=seed();currentDate=TODAY;save();render();goTab('today');toast('ล้างข้อมูลแล้ว เริ่มต้นใหม่');
+  askConfirm('ล้างข้อมูลทั้งหมด?','การกระทำนี้จะลบทุกโปรไฟล์และประวัติทั้งหมดอย่างถาวร ไม่สามารถกู้คืนได้ (แนะนำให้ส่งออกไฟล์ไว้ก่อน)',()=>{
+    root=seedRoot();state=activeData();currentDate=TODAY;save();render();goTab('today');toast('ล้างข้อมูลแล้ว เริ่มต้นใหม่');
   });
 });
 
 // close modals on backdrop tap
-['modalExercise','modalConfirm'].forEach(idm=>{
+['modalExercise','modalConfirm','modalUser'].forEach(idm=>{
   document.getElementById(idm).addEventListener('click',e=>{if(e.target.id===idm)document.getElementById(idm).classList.remove('active');});
 });
 
@@ -1355,6 +1590,7 @@ initStorage();
 // go
 render();
 save(); // persist any auto-migration of older data on first open
+if(root.users.length>1) openUserPicker(); // Netflix-style: choose who's training
 </script>
 </body>
 </html>
