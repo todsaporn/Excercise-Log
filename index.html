@@ -146,7 +146,14 @@
   .timer-card.running{border-color:rgba(34,211,238,.65);box-shadow:0 14px 40px -14px rgba(34,211,238,.5)}
   .timer-card.done{border-color:rgba(52,211,153,.6)}
   .timer-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .timer-title{display:flex;align-items:center;gap:6px}
   .timer-label{font-size:12.5px;font-weight:800;color:#67e8f9;letter-spacing:.4px}
+  .tbell{
+    border:none;background:none;cursor:pointer;font-size:15px;line-height:1;
+    padding:3px 4px;border-radius:8px;transition:.12s;
+  }
+  .tbell:active{transform:scale(.82)}
+  .tbell.off{opacity:.5;filter:grayscale(.6)}
   .timer-presets{display:flex;gap:6px}
   .tpreset{
     border:1px solid var(--line);background:var(--card);color:var(--txt-dim);
@@ -626,7 +633,10 @@
     <!-- Rest timer -->
     <div class="timer-card" id="timerCard">
       <div class="timer-top">
-        <span class="timer-label">⏱️ จับเวลา</span>
+        <div class="timer-title">
+          <span class="timer-label">⏱️ จับเวลา</span>
+          <button class="tbell" id="btnTimerSound" title="เปิด/ปิดเสียง">🔔</button>
+        </div>
         <div class="timer-presets" id="timerPresets">
           <button class="tpreset" data-sec="30">0:30</button>
           <button class="tpreset" data-sec="60">1:00</button>
@@ -878,7 +888,7 @@
    ============================================================ */
 
 const STORE_KEY = "exlog.v1";
-const APP_VERSION = "2026.07.21.4"; // bump on each deploy so users can confirm the update landed
+const APP_VERSION = "2026.07.21.5"; // bump on each deploy so users can confirm the update landed
 const SET_SIZE = 10;               // default set size for new exercises
 const RING_CIRC = 2 * Math.PI * 42;
 
@@ -1536,6 +1546,7 @@ function toast(msg,good){
 
 /* =================== REST TIMER =================== */
 let tDur=60, tRemain=60, tRunning=false, tTO=null, tEnd=0, audioCtx=null;
+let soundOn = (localStorage.getItem('exlog.sound') !== '0'); // default on
 function tFmt(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 function tRender(){
   const card=document.getElementById('timerCard');
@@ -1582,8 +1593,20 @@ function timerDone(){
   tRemain=tDur;
   setTimeout(()=>{ card.classList.remove('done'); tRender(); }, 1600);
 }
+function applySound(){
+  const bell=document.getElementById('btnTimerSound');
+  bell.textContent = soundOn ? '🔔' : '🔕';
+  bell.classList.toggle('off', !soundOn);
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('exlog.sound', soundOn ? '1' : '0');
+  applySound();
+  if(soundOn){ ensureAudio(); beep(); }        // preview the sound (also unlocks audio)
+  toast(soundOn ? 'เปิดเสียงเตือนแล้ว 🔔' : 'ปิดเสียงเตือนแล้ว 🔕', soundOn);
+}
 function beep(){
-  if(!audioCtx) return;
+  if(!soundOn || !audioCtx) return;
   try{
     const now=audioCtx.currentTime;
     [0,0.2,0.4].forEach((t,i)=>{
@@ -1719,11 +1742,13 @@ document.getElementById('btnTimerToggle').addEventListener('click',toggleTimer);
 // rest timer
 document.getElementById('btnTimerStart').addEventListener('click',tStart);
 document.getElementById('btnTimerReset').addEventListener('click',tReset);
+document.getElementById('btnTimerSound').addEventListener('click',toggleSound);
 document.getElementById('timerCard').addEventListener('click',e=>{
   const adj=e.target.closest('[data-adj]'); if(adj){ tAdjust(parseInt(adj.dataset.adj,10)); return; }
   const pre=e.target.closest('.tpreset'); if(pre){ tSetPreset(parseInt(pre.dataset.sec,10)); }
 });
 tRender();
+applySound();
 applyTimerVis();
 
 // stats range selector
