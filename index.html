@@ -888,7 +888,7 @@
    ============================================================ */
 
 const STORE_KEY = "exlog.v1";
-const APP_VERSION = "2026.07.21.5"; // bump on each deploy so users can confirm the update landed
+const APP_VERSION = "2026.07.21.6"; // bump on each deploy so users can confirm the update landed
 const SET_SIZE = 10;               // default set size for new exercises
 const RING_CIRC = 2 * Math.PI * 42;
 
@@ -1566,15 +1566,21 @@ function tTick(){
 function ensureAudio(){ // unlock WebAudio on the user gesture (needed on iOS)
   try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
 }
+/* keep the screen awake while the timer runs (needs HTTPS / secure context) */
+let wakeLock=null;
+async function acquireWake(){
+  try{ if('wakeLock' in navigator && !wakeLock){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{ wakeLock=null; }); } }catch(e){}
+}
+async function releaseWake(){ try{ if(wakeLock){ await wakeLock.release(); wakeLock=null; } }catch(e){ wakeLock=null; } }
 function tStart(){
   document.getElementById('timerCard').classList.remove('done');
-  if(tRunning){ tRunning=false; tRemain=Math.max(0,(tEnd-Date.now())/1000); clearTimeout(tTO); tRender(); if(navigator.vibrate)navigator.vibrate(10); return; }
+  if(tRunning){ tRunning=false; tRemain=Math.max(0,(tEnd-Date.now())/1000); clearTimeout(tTO); releaseWake(); tRender(); if(navigator.vibrate)navigator.vibrate(10); return; }
   ensureAudio();
   if(tRemain<=0) tRemain=tDur;
-  tEnd=Date.now()+tRemain*1000; tRunning=true; tRender(); tTick();
+  tEnd=Date.now()+tRemain*1000; tRunning=true; acquireWake(); tRender(); tTick();
   if(navigator.vibrate) navigator.vibrate(12);
 }
-function tReset(){ tRunning=false; clearTimeout(tTO); tRemain=tDur; document.getElementById('timerCard').classList.remove('done'); tRender(); }
+function tReset(){ tRunning=false; clearTimeout(tTO); releaseWake(); tRemain=tDur; document.getElementById('timerCard').classList.remove('done'); tRender(); }
 function tAdjust(delta){
   document.getElementById('timerCard').classList.remove('done');
   if(tRunning){ tEnd=Math.max(Date.now(), tEnd+delta*1000); tRemain=Math.max(0,(tEnd-Date.now())/1000); }
@@ -1583,7 +1589,7 @@ function tAdjust(delta){
 }
 function tSetPreset(sec){ tRunning=false; clearTimeout(tTO); tDur=sec; tRemain=sec; document.getElementById('timerCard').classList.remove('done'); tRender(); if(navigator.vibrate)navigator.vibrate(8); }
 function timerDone(){
-  clearTimeout(tTO);
+  clearTimeout(tTO); releaseWake();
   const card=document.getElementById('timerCard');
   card.classList.remove('running'); card.classList.add('done');
   document.getElementById('btnTimerStart').textContent='▶ เริ่ม';
@@ -1743,6 +1749,7 @@ document.getElementById('btnTimerToggle').addEventListener('click',toggleTimer);
 document.getElementById('btnTimerStart').addEventListener('click',tStart);
 document.getElementById('btnTimerReset').addEventListener('click',tReset);
 document.getElementById('btnTimerSound').addEventListener('click',toggleSound);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && tRunning) acquireWake(); });
 document.getElementById('timerCard').addEventListener('click',e=>{
   const adj=e.target.closest('[data-adj]'); if(adj){ tAdjust(parseInt(adj.dataset.adj,10)); return; }
   const pre=e.target.closest('.tpreset'); if(pre){ tSetPreset(parseInt(pre.dataset.sec,10)); }
